@@ -136,7 +136,6 @@ class PaygreenApiClient
         if (isset($datas['content'])) {
             $content = json_encode($datas['content']);
         }
-
         if (extension_loaded('curl'))
         {
              $ch = curl_init();

@@ -38,6 +38,7 @@ echo Tools::jsonEncode(
         'visible' => ($o_paygreen->warning == '' && $o_paygreen->isVisible()) ? 'y' : 'n',
         'platform' => _PS_VERSION_,
         'client' => PaygreenClient::VERSION,
-        'Configuration' => $o_paygreen->warning == '' ? $o_paygreen->getVerifyConfig() : 'Aucune'
+        'Configuration' => $o_paygreen->warning == '' ? $o_paygreen->getVerifyConfig() : 'Aucune',
+        'php-version' => phpversion(),
     )
 );

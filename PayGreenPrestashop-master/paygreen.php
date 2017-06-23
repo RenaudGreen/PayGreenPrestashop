@@ -46,6 +46,9 @@ class Paygreen extends PaymentModule
     const _CONFIG_VERIF_ADULT = '_PG_CONFIG_VERIF_ADULT';
     const _CONFIG_BACKLINK_SECURE = '_PG_CONFIG_BACKLING_SEC';
 
+    const BUTTON_IFRAME = 1;
+    const BUTTON_EXTERNAL = 0;
+
     const ERROR_TYPE_BUYER = 1;
     const ERROR_TYPE_MERCHANT = 2;
     const ERROR_TYPE_UNKNOWN = 3;
@@ -64,7 +67,7 @@ class Paygreen extends PaymentModule
     const DEL_PAYMENT = -1;
     const REC_PAYMENT = 3;
 
-    const ACCEPTED_COUNTRIES = array(
+    static protected $accepted_countries = array(
         'ZA',
         'AX',
         'DE',
@@ -121,13 +124,14 @@ class Paygreen extends PaymentModule
         'WF'
     );
 
-    protected $model_buttons = array(
+   protected $model_buttons = array(
         "id" => 0,
         "label" => null,
         "image" => null,
         "position" => null,
         "height" => 0,
         "displayType" => null,
+        "integration" => 0,
         "nbPayment" => 1,
         "reportPayment" => 0,
         "minAmount" => null,
@@ -149,7 +153,7 @@ class Paygreen extends PaymentModule
 
         $this->name = 'paygreen';
         $this->tab = 'payments_gateways';
-        $this->version = '2.0.0';
+        $this->version = '2.0.2';
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => '1.7');
         $this->author = 'Watt Is It';
         $this->need_instance = 1;
@@ -189,9 +193,9 @@ class Paygreen extends PaymentModule
 
         $this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
 
-        $this->limited_countries = self::ACCEPTED_COUNTRIES;
+        $this->limited_countries = static::$accepted_countries;
 
-        //$this->limited_currencies = array('EUR');
+        $this->limited_currencies = array('EUR');
 
         $this->logger = new FileLogger(0);
         $this->logger->setFilename(dirname(__FILE__) . '/lib/debug.log');
@@ -207,10 +211,11 @@ class Paygreen extends PaymentModule
      */
     public function install()
     {
-        if (extension_loaded('curl') == false) {
+        if (extension_loaded('curl') == false || $this->checkApi() != '') {
             $this->_errors[] = Tools::displayError(
                 $this->l('You have to enable the cURL extension on your server to install this module')
             );
+            $this->_errors[] = $this->checkApi();
             $this->log('Install', 'Installation failed: cURL Requirement.');
             return false;
         }
@@ -239,8 +244,19 @@ class Paygreen extends PaymentModule
         Configuration::updateValue(self::_CONFIG_FOOTER_LOGO_COLOR, 'white');
         Configuration::updateValue(self::_CONFIG_VERIF_ADULT, 0);
         Configuration::updateValue('oauth_access', '');
-        include(dirname(__FILE__).'/sql/install.php');
+        try {
+            include(dirname(__FILE__).'/sql/install.php');
+        } catch (Exception $ex) {
+            $this->l('Instalation dataBase fail,check your id,password or your privileges');
+            return false;
+        }
 
+        try {
+            $btn = $this->getButtonsList();
+        } catch (Exception $ex) {
+            $this->l('Access to dataBase fail');
+            return false;
+        }
         // Add button paygreen in menu
         try {
             $tab_parent_id = Tab::getIdFromClassName('AdminParentModules');
@@ -257,7 +273,7 @@ class Paygreen extends PaymentModule
         //common hook for 1.5/1.6/1.7
         if (!parent::install()
             || !$this->createOrderStatuses()
-            || !$this->initializeDb($this->getButtonsList(), $version)
+            || !$this->initializeDb($btn, $version)
             || !$this->registerHook('header')
             || !$this->registerHook('displayPaymentReturn')
             || !$this->registerHook('ActionObjectOrderSlipAddAfter')
@@ -376,9 +392,12 @@ class Paygreen extends PaymentModule
         if ($this->active == false) {
             return;
         }
+        $this->context->controller->addCSS(($this->_path).'views/css/1.7/payment_options.css', 'all');
         /*$version = Tools::substr(_PS_VERSION_, 0, 3);
-        $this->context->controller->addJS($this->_path . 'views/js/' . $version . '/front.js');
-        $this->context->controller->addCSS($this->_path . 'views/css/' . $version . '/front.css');*/
+
+        $this->context->controller->addJS($this->_path . 'views/js/' . $version . '/ion.rangeSlider.js');
+        $this->context->controller->addJS($this->_path . 'views/js/' . $version . '/paygreenInsites.js');*/
+        /*$this->context->controller->addCSS($this->_path . 'views/css/' . $version . '/front.css');*/
     }
 
     /**
@@ -402,8 +421,12 @@ class Paygreen extends PaymentModule
         $cust = new Customer((int)$this->context->cookie->id_customer);
         $currency = new Currency((int)$this->context->cart->id_currency);
 
-
-        $currentConfigureListButtons = $this->getButtonsList();
+        try {
+            $currentConfigureListButtons = $this->getButtonsList();
+        } catch (Exception $ex) {
+            $this->l('Access to dataBase fail');
+            return false;
+        }
         $totalCart = $this->context->cart->getOrderTotal();
         $buttons = array();
         $this->log('hookDisplayPayment', $this->context->cart);
@@ -544,10 +567,11 @@ class Paygreen extends PaymentModule
         if (!$this->checkCurrency($params['cart'])) {
             return;
         }
-        $payment_options = '';
-
         $payment_options = $this->getExternalPaymentOption();
-        return $payment_options;
+        $payment = $payment_options +  $this->getIframePaymentOption();
+        ksort($payment);
+        var_dump($payment);
+        return $payment;
     }
 
     /**
@@ -649,7 +673,6 @@ class Paygreen extends PaymentModule
         } else {
             $type = 'P';
             $host = 'https://paygreen.fr';
-            $token = Tools::substr($token, 2);
         }
 
         $data = array(
@@ -718,11 +741,22 @@ class Paygreen extends PaymentModule
         if (!extension_loaded('mcrypt')) {
             $warning .= ' - ' . $this->l('PHP module \'mcrypt\' is required.');
         }
+
+        if ((extension_loaded('curl') == false || $this->checkApi() != '')
+            && $this->getPaygreenConfig('type') != 'LC') {
+            $warning .= ' - ' . $this->l('PHP module \'curl\' is required or url_fopen.');
+        }
+
         if ($checkBtnConfig) {
             $error_tmp = '';
             $nb_error = 0;
+            try {
+                $btnList = $this->getButtonsList();
+            } catch (Exception $ex) {
+                return $warning . ' - ' . $this->l('Access to dataBase fail');
+            }
 
-            foreach ($this->getButtonsList() as $btn) {
+            foreach ($btnList as $btn) {
                 if ($this->checkButton($btn) != '') {
                     $nb_error++;
                     $error_tmp = $this->checkButton($btn);
@@ -754,9 +788,9 @@ class Paygreen extends PaymentModule
         $orderState->name = array();
         foreach (Language::getLanguages() as $language) {
             if (Tools::strtolower($language['iso_code']) == 'fr') {
-                $orderState->name[$language['id_lang']] = 'Paiement acceptée PAYGREEN';
+                $orderState->name[$language['id_lang']] = 'Paiement autorisé PAYGREEN';
             } else {
-                $orderState->name[$language['id_lang']] = 'Paiement accepted PAYGREEN';
+                $orderState->name[$language['id_lang']] = 'Paiement authorized PAYGREEN';
             }
         }
         $orderState->module_name = $this->name;
@@ -953,8 +987,11 @@ class Paygreen extends PaymentModule
                 $this->logout();
             }
         }
-
-        $buttonsList = $this->getButtonsList();
+        try {
+            $buttonsList = $this->getButtonsList();
+        } catch (Exception $ex) {
+            return $this->displayError($this->l('Access to dataBase fail'));
+        }
         array_push($buttonsList, $this->model_buttons);
         $len = count($buttonsList);
         foreach ($buttonsList as $key => $btn) {
@@ -966,7 +1003,6 @@ class Paygreen extends PaymentModule
 
         $infoShop='';
         $infoAccount='';
-        
         if ($this->isConnected() && $this->paygreenValidIds()) {
             $infoShop = $this->infoShop();
             if ($infoShop != false) {
@@ -984,7 +1020,7 @@ class Paygreen extends PaymentModule
             'prestashop' => Tools::substr(_PS_VERSION_, 0, 3),
             'module_dir' => $this->_path,
             'connected' => $this->isConnected(),
-            'urlBase' => Configuration::get('URL_BASE') . "&connect=false",
+            'urlBase' => Configuration::get('URL_BASE') . "&connect=true",
             'urlBaseDeconnect' => Configuration::get('URL_BASE') . "&deconnect=true",
             'request_uri' => $_SERVER['REQUEST_URI'],
             'buttons' => $buttonsList,
@@ -1003,7 +1039,7 @@ class Paygreen extends PaymentModule
             $this->local_path . 'views/templates/admin/' . $version . '/connectApi.tpl'
         );
         $output .= $this->renderForm();
-        /*$this->context->controller->addJS($this->local_path . 'views/js/' . $version . '/back.js');*/
+       /* $this->context->controller->addJS($this->local_path . 'views/js/' . $version . '/back.js');*/
         $this->context->controller->addCSS($this->local_path . 'views/css/' . $version . '/back.css');
 
         $output .= $this->context->smarty->fetch(
@@ -1015,9 +1051,9 @@ class Paygreen extends PaymentModule
                 $this->local_path . 'views/templates/admin/' . $version . '/configureHook.tpl'
             );
         }
-
         return $output;
     }
+
     /**
      * use PaygreenApiClient
      * @return getStatusShop for id and private key
@@ -1344,9 +1380,9 @@ class Paygreen extends PaymentModule
         if (Tools::isSubmit('submitPaygreenModuleHook')) {
             $return = $this->updatePositionHook($this->hookName);
             if ($return === false) {
-                return $this->l('Position hook failed.');
+                return $this->displayError($this->l('Position hook failed.'));
             }
-            return $this->l('hook at position 1');
+            return $this->displayConfirmation($this->l('hook at position 1'));
         }
 
         if (Tools::isSubmit('submitPaygreenModule')) {
@@ -1422,15 +1458,27 @@ class Paygreen extends PaymentModule
 
             $this->log('addButton', $modelButton);
             if ((int)($modelButton['position']) <= 0) {
-                $btn = $this->getButtonsList();
+                try {
+                    $btn = $this->getButtonsList();
+                } catch (Exception $ex) {
+                    return $this->displayError($this->l('Access to dataBase fail'));
+                }
                 $modelButton['position'] = (int)(count($btn) + 1);
             }
 
             if ($id > 0) {
-                Db::getInstance()->update('paygreen_buttons', $modelButton, 'id=' . ((int)$id));
+                try {
+                    Db::getInstance()->update('paygreen_buttons', $modelButton, 'id=' . ((int)$id));
+                } catch (Exception $ex) {
+                    return $display = $this->displayError($this->l('Access to DataBase fail'));
+                }
                 $display = $this->displayConfirmation($this->l('Datas saved'));
             } else {
-                Db::getInstance()->insert('paygreen_buttons', $modelButton);
+                try {
+                    Db::getInstance()->insert('paygreen_buttons', $modelButton);
+                } catch (Exception $ex) {
+                    return $display = $this->displayError($this->l('Access to DataBase fail'));
+                }
                 $display = $this->displayConfirmation($this->l('Datas saved'));
             }
 
@@ -1444,7 +1492,11 @@ class Paygreen extends PaymentModule
             if ($id == "") {
                 return $this->displayError($this->l('Action no possible'));
             }
-            Db::getInstance()->delete('paygreen_buttons', 'id=' . ((int)$id));
+            try {
+                Db::getInstance()->delete('paygreen_buttons', 'id=' . ((int)$id));
+            } catch (Exception $ex) {
+                return $display = $this->displayConfirmation($this->l('Access to DataBase fail'));
+            }
             return $this->displayConfirmation($this->l('Button ') . Tools::getValue('label') . $this->l(' deleted'));
         }
 
@@ -1503,8 +1555,12 @@ class Paygreen extends PaymentModule
         $cust = new Customer((int)$this->context->cookie->id_customer);
         $currency = new Currency((int)$this->context->cart->id_currency);
 
-
-        $currentConfigureListButtons = $this->getButtonsList();
+        try {
+            $currentConfigureListButtons = $this->getButtonsList();
+        } catch (Exception $ex) {
+            $this->l('Access to dataBase fail');
+            return false;
+        }
         $totalCart = $this->context->cart->getOrderTotal();
         $buttons = array();
         $this->log('hookPaymentOptions', $this->context->cart);
@@ -1603,8 +1659,9 @@ class Paygreen extends PaymentModule
                 'largeur' => $largeur,
                 'src' => $logos
             ));
+                
             $btnPayment->setAction($this->context->link->getModuleLink($this->name, 'validation', array(), true))
-                       ->setInputs(array(
+                        ->setInputs(array(
                             'action' => array(
                                 'name' =>'action',
                                 'type' =>'hidden',
@@ -1620,14 +1677,199 @@ class Paygreen extends PaymentModule
                 $btnPayment ->setLogo($logos)
                             ->setCallToActionText($this->l($btn['label']));
             } elseif ($btn['displayType'] == self::DISPLAYB_LOGO) {
-                 $btnPayment ->setLogo($logos);
+                $btnPayment->setLogo($logos);
             } elseif ($btn['displayType'] == self::DISPLAYB_LABEL) {
                 $btnPayment->setCallToActionText($this->l($btn['label']));
             }
 
-            $a_externalOption[] = $btnPayment;
+            $a_externalOption[(int)$btn['position']] = $btnPayment;
         }
         return $a_externalOption;
+    }
+
+    public function getIframePaymentOption()
+    {
+        if ($this->verifyConfiguration() != '') {
+            return false;
+        }
+        if ($this->getPaygreenConfig('type') != 'LC' && !$this->paygreenValidIds()) {
+            return false;
+        }
+
+        //$config = $this->getConfig();
+
+        if (!$this->isVisible()) {
+            return false;
+        }
+
+        $a_iFrameOption = array();
+
+
+        $totalCart = $this->context->cart->getOrderTotal();
+        try {
+            $currentConfigureListButtons = $this->getButtonsList();
+        } catch (Exception $ex) {
+            $this->l('Access to dataBase fail');
+            return false;
+        }
+        foreach ($currentConfigureListButtons as $btn) {
+            //Test
+            // SI false > continue
+            if ($this->checkButton($btn) != '') {
+                continue;
+            }
+            if (isset($btn['integration']) && $btn['integration'] == self::BUTTON_IFRAME) {
+                if (isset($btn['minAmount'])) {
+                    if ($btn['minAmount'] > 0 && $totalCart < $btn['minAmount']) {
+                        continue;
+                    }
+                }
+
+                if (isset($btn['maxAmount'])) {
+                    if ($btn['maxAmount'] > 0 && $totalCart > $btn['maxAmount']) {
+                        continue;
+                    }
+                }
+                if (isset($btn['nbPayment']) && isset($btn['executedAt'])) {
+                    if (!isset($btn['reportPayment'])) {
+                        $btn['reportPayment'] = 0;
+                    }
+                    $paiement = $this->roundingWeb($btn);
+                }
+
+                switch ($btn['executedAt']) {
+                    // At the delivery
+                    case -1:
+                        $paiement->cardPrint();
+                        break;
+                }
+
+                if (!isset($paiement)) {
+                    return false;
+                }
+                $icondir = $this->getIconDirectory("
+
+                    ", true);
+                if ($btn['image'] == '') {
+                    $icondir .= 'paygreen_paiement1_7.png';
+                } else {
+                    $icondir .= $btn['image'];
+                }
+                $logos = Media::getMediaPath($icondir);
+                $iFrame = new \PrestaShop\PrestaShop\Core\Payment\PaymentOption();
+
+                if ($btn['displayType'] == self::DISPLAYB_LABEL_LOGO) {
+                    $iFrame ->setLogo($logos)
+                            ->setCallToActionText($this->l($btn['label']));
+                } elseif ($btn['displayType'] == self::DISPLAYB_LOGO) {
+                     $iFrame->setLogo($logos);
+                } elseif ($btn['displayType'] == self::DISPLAYB_LABEL) {
+                    $iFrame->setCallToActionText($this->l($btn['label']));
+                }
+
+                $result = $this->createCash($btn['id'], $totalCart, $paiement);
+                var_dump($btn['id']);
+                var_dump($totalCart);
+                var_dump($paiement);
+                var_dump($result);
+                if ($result != null) {
+                    var_dump('ici');
+                    $iFrame->setAdditionalInformation(
+                       $this->generateIframeForm($btn['id'], $totalCart, $result)
+                    );
+                    var_dump('expression');
+                    $iFrame->setAction($this->context->link->getModuleLink($this->name, 'validationInsite', array(), true));
+                    $iFrame->setInputs(array(
+                        'pid' => array(
+                                        'name' =>'pid',
+                                        'type' =>'hidden',
+                                        'value' => substr($result->{'data'}->{'id'}, 2)
+                                    ),
+                        'cart_id' => array(
+                                        'name' => 'cart_id',
+                                        'type' => 'hidden',
+                                        'value' => $paiement->toArray()['cart_id']
+                                    ),
+                        'id' => array(
+                                        'name' =>'id',
+                                        'type' =>'hidden',
+                                        'value' => $btn['id']
+                                    ),
+                    ));
+                    var_dump($iFrame);
+                }
+                $a_iFrameOption[(int)$btn['position']] = $iFrame;
+            }
+        }
+        return $a_iFrameOption;
+    }
+
+    public function roundingWeb($btn)
+    {
+        if ($this->verifyConfiguration() != '') {
+            return false;
+        }
+        if ($this->getPaygreenConfig('type') != 'LC' && !$this->paygreenValidIds()) {
+            return false;
+        }
+
+        $cust = new Customer((int)$this->context->cookie->id_customer);
+        $currency = new Currency((int)$this->context->cart->id_currency);
+
+        $totalCart = $this->context->cart->getOrderTotal();
+
+        $paiement = $this->generatePaiementData(
+            $this->context->cart->id,
+            $btn['nbPayment'],
+            $totalCart,
+            $currency->iso_code,
+            $btn['executedAt'],
+            $btn['reportPayment']
+        );
+        switch ($btn['executedAt']) {
+            // At the delivery
+            case -1:
+                $paiement->cardPrint();
+                break;
+        }
+
+        if (!isset($paiement)) {
+            return false;
+        }
+
+        $paiement->customer(
+            $cust->id,
+            $cust->lastname,
+            $cust->firstname,
+            $cust->email
+        );
+
+        $paiement->cart_id = $this->context->cart->id;
+
+        if (isset($btn['label'])) {
+            $paiement->paiement_btn = $btn['label'];
+        }
+
+        $paiement->return_cancel_url = $this->getShopUrl() . 'modules/paygreen/validation.php';
+        $paiement->return_url = $this->getShopUrl() . 'modules/paygreen/validation.php';
+        $paiement->return_callback_url = $this->getShopUrl() . 'modules/paygreen/notification.php';
+
+
+        $address = new Address($this->context->cart->id_address_delivery);
+        $paiement->shippingTo(
+            $address->lastname,
+            $address->firstname,
+            $address->address1,
+            $address->address2,
+            $address->company,
+            $address->postcode,
+            $address->city,
+            $address->country
+        );
+        if (!empty($_SERVER['HTTPS']) || !$this->getPaygreenConfig('type') == 'P') {
+            $paiement->inSite();
+        }
+        return $paiement;
     }
 
     /**
@@ -1651,6 +1893,24 @@ class Paygreen extends PaymentModule
         return $this->context->smarty->fetch('module:paygreen/views/templates/front/payment_form.tpl');
     }
 
+    /**
+     * display PaygreenInsite Form.
+     */
+    protected function generateIframeForm($id, $totalCart, $paiement)
+    {
+        $this->context->smarty->assign(array(
+            'id' => $id,
+            'amount' => $totalCart,
+            'data' => array(
+                'action' => $paiement->getActionForm(),
+                'paiementData' => urlencode($paiement->generateData())
+            )
+        ));
+
+        return $this->context->smarty->fetch(
+            'module:paygreen/views/templates/front/1.7/iframe.tpl'
+        );
+    }
     /**
      * check Currency of your card
      * @param Cart $cart
@@ -1717,6 +1977,7 @@ class Paygreen extends PaymentModule
             $status = Configuration::get('PS_OS_ERROR');
         } elseif ($client->result['status'] == PaygreenClient::STATUS_CANCELLING) {
             $status = Configuration::get('PS_OS_CANCELED');
+            $this->log('validateWebPayment', $client);
         } elseif ($client->result['status'] == PaygreenClient::STATUS_PENDING_EXEC) {
             $status = Configuration::get(self::_CONFIG_ORDER_AUTH);
             $f_amount = 0;
@@ -1790,7 +2051,14 @@ class Paygreen extends PaymentModule
             $this->log('Id existant : ', $n_order_id);
             $this->log('validateWebPayment-order', $o_order);
 
-            if ($o_order->current_state != $status) {
+            if ($o_order->current_state ==  Configuration::get('PS_OS_ERROR') &&
+                    ($status == Configuration::get('PS_OS_PAYMENT')
+                        || $status == Configuration::get(self::_CONFIG_ORDER_AUTH)
+                    ) ||
+                    ($o_order->current_state == Configuration::get(self::_CONFIG_ORDER_AUTH) &&
+                        $status == Configuration::get('PS_OS_PAYMENT')
+                    )
+            ) {
                 $this->log('validateWebPayment-orderHistory', $o_order->current_state . ' TO ' . $status);
                 $o_order->setCurrentState($status);
                 $o_order->save();
@@ -1871,19 +2139,29 @@ class Paygreen extends PaymentModule
     protected function insertPaygreenRecurringTransaction($id_cart, $current_state, $pid, $amount)
     {
         $id = ((int)$id_cart);
-        $last_recurring_t_state = Db::getInstance()->getValue(
-            'SELECT state FROM ' . _DB_PREFIX_ . 'paygreen_transactions
-            WHERE id_cart=' . $id . ' ORDER BY created_at DESC '
-        );
+        try {
+            $last_recurring_t_state = Db::getInstance()->getValue(
+                'SELECT state FROM ' . _DB_PREFIX_ . 'paygreen_transactions
+                WHERE id_cart=' . (int)$id . ' ORDER BY created_at DESC '
+            );
+        } catch (Exception $ex) {
+            return false;
+        }
 
         // State cancel : 6
         // state error payment : 8
         if ($last_recurring_t_state == 6 || $last_recurring_t_state == 8) {
             return false;
         }
-        
-        $rank = Db::getInstance()->getValue('SELECT COUNT(rank) FROM ' . _DB_PREFIX_ . 'paygreen_recurring_transaction
-            WHERE id=' . $id);
+        try {
+            $rank = Db::getInstance()->getValue(
+                'SELECT COUNT(rank) FROM ' . _DB_PREFIX_ . 'paygreen_recurring_transaction
+                WHERE id=' . (int)$id
+            );
+        } catch (Exception $ex) {
+            return false;
+        }
+
         $date = new DateTime();
         $recurringTransaction = array();
         $recurringTransaction['id'] = $id;
@@ -1892,8 +2170,11 @@ class Paygreen extends PaymentModule
         $recurringTransaction['amount'] = $amount;
         $recurringTransaction['state'] = pSQL($current_state);
         $recurringTransaction['date_payment'] = pSQL($date->format('Y-m-d H:i:s'));
-
-        Db::getInstance()->insert('paygreen_recurring_transaction', $recurringTransaction);
+        try {
+            Db::getInstance()->insert('paygreen_recurring_transaction', $recurringTransaction);
+        } catch (Exception $ex) {
+            return false;
+        }
     }
 
     /**
@@ -1907,7 +2188,11 @@ class Paygreen extends PaymentModule
         $transaction = array();
         $transaction['state'] = pSQL($state);
         $transaction['updated_at'] = pSQL($date->format('Y-m-d H:i:s'));
-        Db::getInstance()->update('paygreen_transactions', $transaction, 'id_order=' . $id_order);
+        try {
+            Db::getInstance()->update('paygreen_transactions', $transaction, 'id_order=' . (int)$id_order);
+        } catch (Exception $ex) {
+            return false;
+        }
     }
 
     /**
@@ -1916,16 +2201,7 @@ class Paygreen extends PaymentModule
      */
     public function paygreenRefundTransaction($id_order, $amount = null)
     {
-
         if (Configuration::get(self::_CONFIG_PAYMENT_REFUND) != 1) {
-            return false;
-        }
-
-        if (!$this->isPaygreenPayment($id_order)) {
-            return false;
-        }
-
-        if ($this->isRefunded($id_order)) {
             return false;
         }
 
@@ -1934,6 +2210,13 @@ class Paygreen extends PaymentModule
             return false;
         }
 
+        if (!$this->isPaygreenPayment($pid)) {
+            return false;
+        }
+
+        if ($this->isRefunded($id_order)) {
+            return false;
+        }
         $token = Configuration::get(self::_CONFIG_SHOP_TOKEN);
         if (Tools::substr($token, 0, 2) == 'PP') {
             $token = Tools::substr($token, 2);
@@ -1942,12 +2225,11 @@ class Paygreen extends PaymentModule
         $this->log('REFUND', array($pid, $amount));
 
         $refundStatus = PaygreenApiClient::refundOrder(
+            $this->getUniqueIdPP(),
             Configuration::get(self::_CONFIG_PRIVATE_KEY),
             $pid,
-            round($amount, 2),
-            $this->isPreprod()
+            round($amount, 2)
         );
-
         $this->errorPaygreenApiClient($refundStatus);
         if (!$refundStatus) {
             $this->log('PaygreenTRansaction update State ', 'Transacton '. $pid .' NOT refunded');
@@ -1973,15 +2255,17 @@ class Paygreen extends PaymentModule
 
     /**
      * Check if a payment was done with Paygreen
-     * @param $id_order
+     * @param $pid
      * @return true or false
      */
-    protected function isPaygreenPayment($id_order)
+    protected function isPaygreenPayment($pid)
     {
-        if ($this->getPaymentByOrder($id_order) != 'Paygreen') {
-            return false;
-        }
-        return true;
+        $paygreen_pid = Db::getInstance()->getValue(
+            'SELECT `pid`
+            FROM  `' . _DB_PREFIX_ . 'paygreen_transactions`
+            WHERE `pid` = "' . pSQL($pid) . '"'
+        );
+        return $paygreen_pid == $pid ? true : false;
     }
 
      /**
@@ -2152,10 +2436,13 @@ class Paygreen extends PaymentModule
     {
         if (count($btn) == 0) {
             $display = $version == 1.7 ? '1' : 'bloc';
-            $this->executeSqlString(
-                "INSERT INTO `%%PREFIX%%paygreen_buttons` (`label`, `position`, `height`, `displayType`, `nbPayment`)" .
-                " VALUES ('" . $this->l('Pay by bank card') . "', '1', '60', ". "'". $display . "'" .", '1');"
-            );
+            Db::getInstance()->insert('paygreen_buttons', array (
+                'label' => pSQL($this->l('Pay by bank card')),
+                'position' => (int) 1,
+                'height' => (int) 60,
+                'displayType' => pSQL($display),
+                'nbPayment' => (int) 1
+                ));
         }
         return true;
     }
@@ -2194,31 +2481,37 @@ class Paygreen extends PaymentModule
         foreach ($listHook as $hook) {
             $id_hook = Db::getInstance()->getValue(
                 'SELECT id_hook FROM '. _DB_PREFIX_ . 'hook 
-                WHERE name = ' . '\'' . $hook . '\''
+                WHERE name = ' . '\'' . pSQL($hook) . '\''
             );
             $idModule = Db::getInstance()->getValue(
                 'SELECT id_module FROM ' . _DB_PREFIX_ . 'hook_module
-                WHERE position = 1 AND id_hook = ' . $id_hook
+                WHERE position = 1 AND id_hook = ' . (int)$id_hook
             );
             $positionPaygreen = Db::getInstance()->getValue(
                 'SELECT position FROM ' . _DB_PREFIX_ . 'hook_module
-                WHERE id_hook = ' . $id_hook . ' AND id_module = ' . $idPaygreen
+                WHERE id_hook = ' . (int)$id_hook . ' AND id_module = ' . (int)$idPaygreen
             );
-            $query = 'UPDATE '  . _DB_PREFIX_ . 'hook_module 
-                    SET position = '. $positionPaygreen . '
-                    WHERE id_module = ' . $idModule . ' AND id_hook = ' . $id_hook;
-            $updateModulePosition = Db::getInstance()->execute($query);
+            $pos = array();
+            $pos['position'] = (int)$positionPaygreen;
+            $updateModulePosition = Db::getInstance()->update(
+                'hook_module',
+                $pos,
+                'id_module = ' . (int)$idModule . ' AND id_hook = ' . (int)$id_hook
+            );
             if ($updateModulePosition === false) {
-                Logger::addLog('Query FAILED ' . $query);
+                Logger::addLog('Query FAILED ');
                 return false;
             }
 
-            $query = 'UPDATE '  . _DB_PREFIX_ . 'hook_module 
-                    SET position = 1
-                    WHERE id_module = ' . $idPaygreen . ' AND id_hook = ' . $id_hook;
-            $updateModulePosition = Db::getInstance()->execute($query);
+            $pos = array();
+            $pos['position'] = (int)1;
+            $updateModulePosition = Db::getInstance()->update(
+                'hook_module',
+                $pos,
+                'id_module = ' . (int)$idPaygreen . ' AND id_hook = ' . (int)$id_hook
+            );
             if ($updateModulePosition === false) {
-                Logger::addLog('Query FAILED ' . $query);
+                Logger::addLog('Query FAILED');
                 return false;
             }
         }
@@ -2231,20 +2524,46 @@ class Paygreen extends PaymentModule
      */
     private function insertTransaction($paygreenTransaction)
     {
-        $isValid = 'SELECT COUNT(*) FROM ' . _DB_PREFIX_ . 'paygreen_transactions 
-        WHERE  id_cart = ' . $paygreenTransaction['id_cart'];
-        if (Db::getInstance()->getValue($isValid) == 0) {
-            Db::getInstance()->insert('paygreen_transactions', $paygreenTransaction);
-            return true;
+        $valid = 'SELECT COUNT(*) FROM ' . _DB_PREFIX_ . 'paygreen_transactions 
+        WHERE  id_cart = ' . (int)$paygreenTransaction['id_cart'];
+        try {
+            $isValid = Db::getInstance()->getValue($valid);
+        } catch (Exception $ex) {
+            return false;
+        }
+        if ($isValid == 0) {
+            try {
+                Db::getInstance()->insert('paygreen_transactions', $paygreenTransaction);
+                return true;
+            } catch (Exception $ex) {
+                return false;
+            }
         } else {
             $validate = 'SELECT state FROM ' . _DB_PREFIX_ . 'paygreen_transactions 
-            WHERE  id_cart = ' . $paygreenTransaction['id_cart'];
-            if (Db::getInstance()->getValue($validate) != 2) {
-                $query = 'UPDATE ' . _DB_PREFIX_ . 'paygreen_transactions
-                SET state = ' . $paygreenTransaction['state'] . ' WHERE  id_cart = ' . $paygreenTransaction['id_cart'];
-                $update = Db::getInstance()->execute($query);
+            WHERE  id_cart = ' . (int)$paygreenTransaction['id_cart'];
+            try {
+                $isValidate = Db::getInstance()->getValue($validate);
+            } catch (Exception $ex) {
+                return false;
+            }
+            if (($isValidate == Configuration::get('PS_OS_ERROR') &&
+                    ($paygreenTransaction['state'] == Configuration::get('PS_OS_PAYMENT')
+                        || $paygreenTransaction['state'] == Configuration::get(self::_CONFIG_ORDER_AUTH)
+                    )
+                ) ||
+                ($isValidate == Configuration::get(self::_CONFIG_ORDER_AUTH) &&
+                    $paygreenTransaction['state'] == Configuration::get('PS_OS_PAYMENT')
+                )
+            ) {
+                $state = array();
+                $state['state'] = pSQL($paygreenTransaction['state']);
+                $update = Db::getInstance()->update(
+                    'paygreen_transactions',
+                    $state,
+                    'id_cart = ' . (int)$paygreenTransaction['id_cart']
+                );
                 if ($update === false) {
-                    Logger::addLog('Query FAILED ' . $query);
+                    Logger::addLog('Query FAILED ');
                     return false;
                 }
             }
@@ -2261,8 +2580,12 @@ class Paygreen extends PaymentModule
         $warning = '';
         $error_tmp = '';
         $nb_error = 0;
-
-        foreach ($this->getButtonsList() as $btn) {
+        try {
+            $btnList = $this->getButtonsList();
+        } catch (Exception $ex) {
+            return $this->l('Acess to dataBase Fail');
+        }
+        foreach ($btnList as $btn) {
             if ($this->checkButton($btn) != '') {
                 $nb_error++;
                 $error_tmp = $this->checkButton($btn);
@@ -2336,7 +2659,11 @@ class Paygreen extends PaymentModule
     {
         $config = $this->getConfig();
         if ($config[self::_CONFIG_PRIVATE_KEY] != '' && $config[self::_CONFIG_SHOP_TOKEN] != '') {
-            $buttonsList = $this->getButtonsList();
+            try {
+                $buttonsList = $this->getButtonsList();
+            } catch (Exception $ex) {
+                return null;
+            }
             array_push($buttonsList, $this->model_buttons);
             array_pop($buttonsList);
             $data = array (
@@ -2348,5 +2675,58 @@ class Paygreen extends PaymentModule
             return $encode->generateData();
         }
         return null;
+    }
+
+    public function checkApi()
+    {
+        if (!ini_get('allow_url_fopen')) {
+            return $this->l('Acces to PaygreenApi fail.');
+        }
+        return '';
+    }
+
+    /**
+     * Check if an order is already refunded
+     * @param $id_order
+     * @return true or false
+     */
+    protected function isRefunded($id_order)
+    {
+
+        $stateTransac = $this->getStateTransactionByIdOrder($id_order);
+
+        // 7 for refund
+        if ($stateTransac == 7 || $stateTransac == null) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     *   Return state of transaction by the id order
+     * @param $id_order
+     * @return state or false if not exists
+     */
+    protected function getStateTransactionByIdOrder($id_order)
+    {
+
+        return Db::getInstance()->getValue(
+            'SELECT state FROM ' . _DB_PREFIX_ . 'paygreen_transactions
+    WHERE id_order=' . ((int)$id_order) . ';'
+        );
+    }
+
+    /**
+     *   Return state of transaction by the id order
+     * @param $id_order
+     * @return state or false if not exists
+     */
+    protected function getPIDByOrder($id_order)
+    {
+
+        return Db::getInstance()->getValue(
+            'SELECT pid FROM ' . _DB_PREFIX_ . 'paygreen_transactions
+    WHERE id_order=' . ((int)$id_order) . ';'
+        );
     }
 }
