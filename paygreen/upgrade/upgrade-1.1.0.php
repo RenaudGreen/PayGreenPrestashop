@@ -1,5 +1,6 @@
-{*
-* 2014 - 2015 Watt Is It
+<?php
+/**
+* 2007-2017 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -17,20 +18,27 @@
 * versions in the future. If you wish to customize PrestaShop for your
 * needs please refer to http://www.prestashop.com for more information.
 *
-*  @author    PayGreen <contact@paygreen.fr>
-*  @copyright 2014-2014 Watt It Is
+*  @author    PrestaShop SA <contact@prestashop.com>
+*  @copyright 2007-2017 PrestaShop SA
 *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
-*
-*}
-<div class="box box-small clearfix">
-{if isset($error) AND $error}
-	<p>
-		<h3>{$config['_PG_PAIEMENT_REFUSED']|escape:'html':'UTF-8'}</h3><br />
-	</p>
-{else}
-	<p>
-		<h3>{$config['_PG_PAIEMENT_ACCEPTED']|escape:'html':'UTF-8'}</h3><br />
-	</p>
-{/if}
-</div>
+*/
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
+/**
+ * This function updates your module from previous versions to the version 1.1,
+ * usefull when you modify your database, or register a new hook ...
+ * Don't forget to create one file per version.
+ */
+function upgrade_module_1_1_0()
+{
+    /**
+     * Do everything you want right there,
+     * You could add a column in one of your module's tables
+     */
+
+    return true;
+}

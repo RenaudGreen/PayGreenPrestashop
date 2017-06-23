@@ -98,18 +98,6 @@ class PaygreenApiClient
             );
             break;
 
-            case 'get-datas':
-            if (empty($datas['pid'])) {
-                return false;
-            }
-
-            $datas = array(
-                'method' => 'GET',
-                'url' => self::getUrlProd().'/'.self::getUI().'/payins/transaction/'.$datas['pid'],
-                'http' => $http
-            );
-            break;
-
             case 'are-valid-ids':
             $datas = array(
                 'method' => 'GET',
@@ -123,42 +111,6 @@ class PaygreenApiClient
                 'method' => 'GET',
                 'url' =>  self::getUrlProd().'/'.self::getUI().'/'.$datas['type'],
                 'http' => $http
-            );
-
-            break;
-
-            case 'validate-rounding':
-            $datas = array(
-                'method' => 'PATCH',
-                'url' =>  self::getUrlProd().'/'.self::getUI().'/solidarity/'.$datas['paymentToken'],
-                'http' => $http
-            );
-
-            break;
-
-            case 'get-rounding':
-            $datas = array(
-                'method' => 'GET',
-                'url' =>  self::getUrlProd().'/'.self::getUI().'/solidarity/'.$datas['paymentToken'],
-                'http' => $http
-            );
-
-            break;
-
-            case 'refund-rounding':
-            $datas = array(
-                'method' => 'DELETE',
-                'url' =>  self::getUrlProd().'/'.self::getUI().'/solidarity/'.$datas['paymentToken'],
-                'http' => $http
-            );
-
-            break;
-
-            case 'create-cash':
-                $datas = array(
-                    'method' => 'POST',
-                    'url' => self::getUrlProd().'/'.self::getUI().'/payins/transaction/cash',
-                    'http' => $http
             );
 
             break;
@@ -206,6 +158,7 @@ class PaygreenApiClient
             ));
             $page = curl_exec($ch);
             curl_close($ch);
+
         } else if(ini_get('allow_url_fopen')) {
 
             $opts = array(
@@ -229,6 +182,7 @@ class PaygreenApiClient
         return json_decode($page);
 
     }
+
 
     /**
     * Get Status of the shop
@@ -255,11 +209,6 @@ class PaygreenApiClient
         return $UI;
     }
 
-    public static function getTransactionInfo($UI, $CP, $pid) 
-    {
-        self::IdsAreEmpty($UI, $CP);
-        return self::requestApi('get-datas', array('pid' => $pid));
-    }
     /**
     * Get shop informations
     * @param string $UI unique id
@@ -302,23 +251,6 @@ class PaygreenApiClient
         return $infosAccount;
     }
 
-    /**
-    * Get rounding informations for $paiementToken
-    * @param string $UI unique id
-    * @param string $CP private key
-    * @param string $paiementToken paiementToken
-    * @return string json datas
-    */
-    public static function getRoundingInfo($UI, $CP, $paiementToken)
-    {
-        self::IdsAreEmpty($UI, $CP);
-        $transaction = self::requestApi('get-rounding', array('paymentToken' => $paiementToken));
-        if(self::isContainsError($transaction)){
-            return $transaction->error;
-        }
-        return $transaction;
-    }
-
     public static function isContainsError($var){
         if(isset($var->error)){
             return true;
@@ -354,7 +286,7 @@ class PaygreenApiClient
     public static function validIdShop($UI, $CP)
     {
         self::IdsAreEmpty($UI, $CP);
-        $valid = self::requestApi('are-valid-ids', null);
+        $valid = self::requestApi('are-valid-ids',null);
 
         if( $valid!=false ) {
             if(isset($valid->error)){
@@ -367,19 +299,6 @@ class PaygreenApiClient
         }
         return false;
     }
-
-    public static function validateRounding($UI, $CP, $datas)
-    {
-        self::IdsAreEmpty($UI, $CP);
-        $validate = self::requestApi('validate-rounding', $datas);
-
-        if(self::isContainsError($validate)){
-            return $validate->error;
-        }
-        return $validate;
-    }
-
-
 
     public static function IdsAreEmpty($UI, $CP)
     {
@@ -412,17 +331,6 @@ class PaygreenApiClient
         }
 
         return self::requestApi('refund', $datas);
-    }
-
-    public static function refundRounding($UI, $CP, $datas)
-    {
-        self::IdsAreEmpty($UI, $CP);
-        $refund = self::requestApi('refund-rounding', $datas);
-
-        if(self::isContainsError($refund)){
-            return $refund->error;
-        }
-        return $refund;
     }
 
 

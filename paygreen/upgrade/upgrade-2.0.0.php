@@ -60,9 +60,5 @@ function upgrade_module_2_0_0($object)
         PRIMARY KEY (`id`, `rank`)
         ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8'
     );
-    Db::getInstance()->Execute(
-        'ALTER TABLE '._DB_PREFIX_.'paygreen_buttons
-        ADD [COLUMN] `integration` INT NOT NULL DEFAULT 0'
-    );
     return true;
 }

@@ -27,7 +27,7 @@
  */
 class PaygreenClient
 {
-    const VERSION = '0.12B';
+    const VERSION = '0.11B';
     const CURRENCY_EUR = 'EUR';
 
 
@@ -195,10 +195,6 @@ class PaygreenClient
         return $this;
     }
 
-    public function inSite() {
-        $this->displayMode = 'insite';
-    }
-
     public function oneClick() {
         $this->oneclick = 1;
         return $this;
@@ -206,7 +202,7 @@ class PaygreenClient
 
     public function cardPrint()
     {
-        $this->mode = (isset($this->data['amount']) && $this->data['amount']) > 0? self::MODE_TOKENIZE: self::MODE_CARDPRINT;
+        $this->mode = isset($this->data['amount']) && $this->data['amount'] > 0 ? self::MODE_TOKENIZE : self::MODE_CARDPRINT;
         return $this;
     }
 
