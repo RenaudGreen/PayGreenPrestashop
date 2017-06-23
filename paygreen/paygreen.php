@@ -1752,7 +1752,6 @@ class Paygreen extends PaymentModule
                 }
                 $logos = Media::getMediaPath($icondir);
                 $iFrame = new \PrestaShop\PrestaShop\Core\Payment\PaymentOption();
-
                 if ($btn['displayType'] == self::DISPLAYB_LABEL_LOGO) {
                     $iFrame ->setLogo($logos)
                             ->setCallToActionText($this->l($btn['label']));
@@ -1761,8 +1760,7 @@ class Paygreen extends PaymentModule
                 } elseif ($btn['displayType'] == self::DISPLAYB_LABEL) {
                     $iFrame->setCallToActionText($this->l($btn['label']));
                 }
-
-                $result = $this->createCash($btn['id'], $totalCart, $paiement);
+                $result = $this->createCash($paiement);
                 if ($result != null) {
                     $iFrame->setAdditionalInformation(
                         $this->generateIframeForm($btn['id'], $totalCart, $result)

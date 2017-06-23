@@ -259,24 +259,13 @@
 		//TOOLS
 		function popIN() {
 			var popID = selectorById('holds-the-iframe').parent().attr('id').slice(0,16)  +"-additional-information";
-			console.log($('#' + popID).width());
-			var popWidth = $(window).width() <= 500 ? $(window).width() : 500;
-			var popHeight = $(window).height() <= 550 ? $(window).height() : 550;
-			console.log('le longueur est ' + popWidth);
-			$('#' + popID).fadeIn().css({ 'width': popWidth, 'height': popHeight}).prepend('<a href="#" class="close"></a>');
-			console.log($('#' + popID).width());
-			var popMargTop = ($(window).height()) / 2;
-			var popMargLeft = ($('#' + popID).width() + 80) / 2;						
-			$('#' + popID).css({ 
-				'margin-top' : -(popMargTop - 20),
-				'margin-left' : -popMargLeft
-			});
-					
+			
+			$('#' + popID).css("width","500px").fadeIn().prepend('<a href="#" class="close"></a>');
 			$('body').append('<div id="fade"></div>');
 			$('#fade').css({'filter' : 'alpha(opacity=80)'}).fadeIn();
 			$('body').on('click', '#fade', function() {
 				$('#fade , .popup_block').fadeOut(function() {
-					$('#fade').remove(); 
+					$('#fade').remove();
 				});
 			});
 		}
