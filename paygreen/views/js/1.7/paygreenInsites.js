@@ -43,11 +43,11 @@
 
     	function init() {
 			loadScript();
-			doc.html(createHtml());
-			$("#insiteTpl").tmpl(params).appendTo("#insites" + params.id);
+			$(createHtml()).appendTo('body');
+			$('body').prepend($("#insiteTpl").tmpl(params));
 		    imageControl();
 		    numberInput();
-		    var popID = selectorById('holds-the-iframe').parent().attr('id').slice(0,16)  +"-additional-information";
+		    var popID = $("#script"+ params.id).parent().attr('id').slice(0,16)  +"-additional-information";
 			var reg = new RegExp('.*insite=' + params.id + '.*', 'i');
 			if (!reg.test($(location).attr('href'))) {
 			} else {
@@ -55,7 +55,7 @@
 				selectorById('holds-the-iframe').removeClass('hidden');
 				selectorById('holds-the-iframe').parent().addClass("popup_block");
 				control();
-				document.getElementById(selectorById('holds-the-iframe').parent().attr('id').slice(0,16)).click();
+				document.getElementById($("#script"+ params.id).parent().attr('id').slice(0,16)).click();
 			}
 			checked();
 			//input For payment option
@@ -65,64 +65,74 @@
 		function createHtml() {
     		var html = 
     		'<script id=\"insiteTpl\" type=\"text/x-jQuery-tmpl\">' + 
-		    	'<div id=\"message${id}\">' + 
-		    	'</div>' +
-				'<div class=\"checkbox\">' +                            
-					'<input type=\"checkbox\" class=\"option ${id} \" value=\"\"><label for= \"option ${id}\""> Option: arrondir votre panier et faire un don</label>' +
-				'</div>' +
-
-				'<p class=\"choose ${id}\">Choisissez votre association:</p>' +
-				'<div class=\"overlay ${id}\">' +
-					'{{each asso}}' +
-	            		'<a class=\"assoc ${id} \" data-id=\"${$value.associationId}\">' +
-							'<div class=\"imgAssoc\" style="background-image:url(${$value.imageUrl})\"></div>' +
-							'<br>' +
-							'<span>${$value.name}</span>' +
-						'</a>' +
-					'{{/each}}' +
-				'</div>' +
-				'<div class="col-xs-11 col-md-10 price ${id}">' +
-					'<div class="row">' +
-  						'<div class="col-xs-4 col-md-4">Panier</div>' +
-  						'<div class="col-xs-4 col-md-4">Don</div>' +
-  						'<div class="col-xs-4 col-md-4">Total</div>' +
-					'</div>' +
-					'<div class="row">' +
-  						'<div class="col-xs-4 col-md-4" id="panier${id}"></div>' +
-  						'<div class="col-xs-4 col-md-4" id="don${id}"></div>' +
-  						'<div class="col-xs-4 col-md-4" id="total${id}"></div>' +
-					'</div>' +
-				'</div>' +
-				'<p class=\"choice ${id}\">Je choisis de donner:</p>' +
-				'<div class=\"container\">' +
-		 			'<form action="" method="post" class="donation-tools ${id}">' +
-		    			'<div class=\"range-slider ${id} col-xs-12 col-sm-6 ' + '\">' +
-		    				'<input type=\"text\" class=\"range form-control ${id}\" value=\"\" />' +
+    			'<div id="popIn${id}" class="col-xs-12">' +
+    				'<div id="insites${id}" class="hidden">' +
+				    	'<div id=\"message${id}\">' + 
+				    	'</div>' +
+						'<div class=\"checkbox\">' +                            
+							'<button type="button" class="close" data-dismiss="modal" aria-label="Close">' +
+								'<span aria-hidden="true">×</span>' +
+							'</button>' +
+							'<input type=\"checkbox\" class=\"option ${id} \" value=\"\"><label for= \"option ${id}\""> Option: arrondir votre panier et faire un don</label>' +
 						'</div>' +
-						'<div class="form-group">' +
-							'<div class=\"col-xs-7 col-sm-4\">' +
-		   						'<input type=\"number\" class=\"number ${id} form-control input-md\" step =\"0.01\" value=\"0.01\" min = \"0.01\"/>' +
-		   					'</div>' +
-		   					'<div class=\"number euro ${id} col-xs-3 col-md-1\">&euro;</div>' +
-		   				'</div>' +
-					'</form>' +
-				'</div>' +
-				'<pre>' +
-				'</pre>' +
-				'<div class=\"panel-body\">' +
-					'<div class=\"info ${id} collapse\">'  +
-		    			'<p class=\"light ${id}\">Vous décidez du montant de votre arrondi en faisant glisser le curseur ci-dessus. Cliquez ensuite sur le bouton j\'arrondi pour arrondir le montant de votre panier.</p>' +
-		    			'<p>Si vous ne shouhaitez pas faire d\'arrondi, décochez la case option.</p>' +
-		    		'</div>' +
-				'</div>' +
-				'<div class=\"form-group choice ${id}\"> ' +
-					'<div class=\"col-xs-2 col-md-2">' +
+
+						'<p class=\"choose ${id}\">Choisissez votre association:</p>' +
+						'<div class=\"overlay ${id}\">' +
+							'{{each asso}}' +
+			            		'<a class=\"assoc ${id} \" data-id=\"${$value.associationId}\">' +
+									'<div class=\"imgAssoc\" style="background-image:url(${$value.imageUrl})\"></div>' +
+									'<br>' +
+									'<span>${$value.name}</span>' +
+								'</a>' +
+							'{{/each}}' +
+						'</div>' +
+						'<div class="col-xs-11 col-md-10 price ${id}">' +
+							'<div class="row">' +
+		  						'<div class="col-xs-4 col-md-4">Panier</div>' +
+		  						'<div class="col-xs-4 col-md-4">Don</div>' +
+		  						'<div class="col-xs-4 col-md-4">Total</div>' +
+							'</div>' +
+							'<div class="row">' +
+		  						'<div class="col-xs-4 col-md-4" id="panier${id}"></div>' +
+		  						'<div class="col-xs-4 col-md-4" id="don${id}"></div>' +
+		  						'<div class="col-xs-4 col-md-4" id="total${id}"></div>' +
+							'</div>' +
+						'</div>' +
+						'<p class=\"choice ${id}\">Je choisis de donner:</p>' +
+						'<div class=\"container\">' +
+				 			'<form action="" method="post" class="donation-tools ${id}">' +
+				    			'<div class=\"range-slider ${id} col-xs-12 col-sm-6 ' + '\">' +
+				    				'<input type=\"text\" class=\"range form-control ${id}\" value=\"\" />' +
+								'</div>' +
+								'<div class="form-group">' +
+									'<div class=\"col-xs-7 col-sm-4\">' +
+				   						'<input type=\"number\" class=\"number ${id} form-control input-md\" step =\"0.01\" value=\"0.01\" min = \"0.01\"/>' +
+				   					'</div>' +
+				   					'<div class=\"number euro ${id} col-xs-2 col-md-1\">&euro;</div>' +
+				   				'</div>' +
+							'</form>' +
+						'</div>' +
+						'<pre>' +
+						'</pre>' +
+						'<div class=\"panel-body\">' +
+							'<div class=\"info ${id} collapse\">'  +
+				    			'<p class=\"light ${id}\">Vous décidez du montant de votre arrondi en faisant glisser le curseur ci-dessus. Cliquez ensuite sur le bouton j\'arrondi pour arrondir le montant de votre panier.</p>' +
+				    			'<p>Si vous ne shouhaitez pas faire d\'arrondi, décochez la case option.</p>' +
+				    		'</div>' +
+						'</div>' +
+						'<div class=\"form-group choice ${id}\"> ' +
+							'<div class=\"col-xs-1 col-md-2">' +
+							'</div>' +
+							'<div class=\"col-xs-10 col-md-8 buttonDonation ${id}\">' +
+								'<button  type=\"button\" class=\"cancel ${id} btn btn-danger\" >Annuler</button>' +
+								'<button  type=\"submit\" class=\"roundOff ${id} btn btn-success\" name="submitPaygreenInsites" >J\'arrondis</button>' +
+							'</div>' +
+						'</div>' +
 					'</div>' +
-					'<div class=\"col-xs-8 col-md-8 buttonDonation ${id}\">' +
-						'<button  type=\"button\" class=\"cancel ${id} btn btn-danger\" >Annuler</button>' +
-						'<button  type=\"submit\" class=\"roundOff ${id} btn btn-success\" name="submitPaygreenInsites" >J\'arrondis</button>' +
-					'</div>' +
-				'</div>' + 
+					'<div class="holds-the-iframe ${id} hidden">' +
+	   					'<iframe id="iframeInsites${id}" data-src="${url}" style="width: 100%;height: 350px" frameborder="0"></iframe>' +
+   					'</div>' +
+   				'</div>' +
 			'</script>';
 	    	return html;
     	}
@@ -236,7 +246,7 @@
 		}
 
 		function prestaIntegration() {
-			$("#" + selectorById('holds-the-iframe').parent().attr('id').slice(0,16)).on('click',function () {
+			$("#" + $("#script"+ params.id).parent().attr('id').slice(0,16)).on('click',function () {
 				$(".option." + params.id).prop('checked', false);
 				checked();
 				var number = selectorById('number');
@@ -254,16 +264,20 @@
 				popIN();
             });
 
-            document.getElementById(selectorById('holds-the-iframe').parent().attr('id').slice(0,16)).click();
+            document.getElementById($("#script"+ params.id).parent().attr('id').slice(0,16)).click();
 		}
 		//TOOLS
-		function popIN() {
-			var popID = selectorById('holds-the-iframe').parent().attr('id').slice(0,16)  +"-additional-information";
-			
-			$('#' + popID).css("width","500px").fadeIn().prepend('<a href="#" class="close"></a>');
+		function popIN() {	
+			$('#popIn' + params.id).fadeIn().prepend('<a href="#" class="close"></a>');
 			$('body').append('<div id="fade"></div>');
-			$('#fade').css({'filter' : 'alpha(opacity=80)'}).fadeIn();
+			$('#fade').fadeIn();
 			$('body').on('click', '#fade', function() {
+				$('#fade , .popup_block').fadeOut(function() {
+					$('#fade').remove();
+				});
+			});
+
+			$('.close').on('click', function() {
 				$('#fade , .popup_block').fadeOut(function() {
 					$('#fade').remove();
 				});

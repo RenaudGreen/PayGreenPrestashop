@@ -238,10 +238,9 @@ label.choice {
 	background: #fff;
 	padding: 20px;
 	float: left;
-	font-size: 1.2em;
-	position: fixed;
-	top: 50%; left: 50%;
+	position: absolute;
 	z-index: 99999;
+	margin: 10px;
 	/*--Les différentes définitions de Box Shadow en CSS3--*/
 	-webkit-box-shadow: 0px 0px 20px #000;
 	-moz-box-shadow: 0px 0px 20px #000;
@@ -250,6 +249,12 @@ label.choice {
 	-webkit-border-radius: 10px;
 	-moz-border-radius: 10px;
 	border-radius: 10px;
+	max-width: 500px;
+	margin-left: auto;
+    margin-right: auto;
+    left: 0;
+    right: 0;
+    top: 10px;
 }
 img.btn_close {
 	float: right;
@@ -261,4 +266,14 @@ position: absolute;
 }
 *html .popup_block {
 position: absolute;
+}
+
+.close {
+	float: right;
+    font-size: 21px;
+    font-weight: bold;
+    line-height: 1;
+    color: #000000;
+    text-shadow: 0 1px 0 #ffffff;
+    opacity: 0.2;
 }

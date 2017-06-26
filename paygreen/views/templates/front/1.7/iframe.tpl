@@ -29,15 +29,15 @@
 <link rel="stylesheet" href="modules/paygreen/views/css/1.7/ion.rangeSlider.css" />
 <link rel="stylesheet" href="modules/paygreen/views/css/1.7/ion.rangeSlider.skinFlat.css" />
 <link rel="stylesheet" href="modules/paygreen/views/css/1.7/paygreenInsites.css" />
-<script type="text/javascript">
-	var id = {$id|escape:'html':'UTF-8'};
+<script type="text/javascript" id="plugin{$id|escape:'html':'UTF-8'}">
 	{literal}
 	$(document).ready(function() {
 		{/literal} 
-    	$('#insites{$id|escape:'html':'UTF-8'}'{literal}).paygreenInsites(
+    	$('#checkout'{literal}).paygreenInsites(
     		{
     			"id" :{/literal} {$id|escape:'html':'UTF-8'},
     			"amount": {$amount|escape:'html':'UTF-8'},
+                "url":"{$url|escape:'html':'UTF-8}",
     			{literal}
     			"asso": [
     				{"associationId": "1", "name": "Asso6", "imageUrl": "http://localhost:8017/modules/paygreen/views/img/icons/association1.jpg"},
@@ -50,9 +50,3 @@
 	});
 	{/literal}
 </script>
-<div id="insites{$id|escape:'html':'UTF-8'}" class="hidden">
-
-</div>
-<div class="holds-the-iframe {$id|escape:'html':'UTF-8'} hidden">
-	<iframe id="iframeInsites{$id|escape:'html':'UTF-8'}" data-src="{$url}" style="width: 100%;height: 350px" frameborder="0"></iframe>
-</div>
