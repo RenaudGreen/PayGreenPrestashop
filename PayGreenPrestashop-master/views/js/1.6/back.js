@@ -27,6 +27,7 @@
 $(document).ready(function() {
     var selectlist = document.querySelectorAll('[id=executedAt]');
     for (var k = 0;k < selectlist.length; k++) {
+        checkExecutedAt(selectlist[k]);
         selectlist[k].onchange = function() {
         checkExecutedAt(
             this
@@ -43,6 +44,9 @@ function checkExecutedAt(select) {
     var paymentReport = document.querySelectorAll('[id=labelReport]');
     var selectReport = document.querySelectorAll('[id=reportPayment]');
     var paymentDue = document.querySelectorAll('[id=nbPayment]');
+    var percent = document.querySelectorAll('[id=perCentPayment]');
+    var percentLabel = document.querySelectorAll('[id=labelPerCentPayment]');
+    var percentSpan = document.querySelectorAll('[id=spanPerCentPayment]');
     var n;
     for (var i = 0;i < temp.length; ++i) {
         if (temp[i] == select) {
@@ -51,12 +55,21 @@ function checkExecutedAt(select) {
     }
     if (select.value == 1) {
         displayAllPayment(paymentDue[n], help[n], label[n], paymentReport[n], selectReport[n], "block");
+        displayPerCentPayment(percent[n], percentLabel[n], percentSpan[n], "none");
     } else if (select.value == 3) {
         displayPaymentReport(paymentReport[n], selectReport[n], "none");
         displayPaymentDue(paymentDue[n], help[n], label[n], "block");
+        displayPerCentPayment(percent[n], percentLabel[n], percentSpan[n], "block");
     } else {
         displayAllPayment(paymentDue[n], help[n], label[n], paymentReport[n], selectReport[n], "none");
+        displayPerCentPayment(percent[n], percentLabel[n], percentSpan[n], "none");
     }
+}
+
+function displayPerCentPayment(percent, percentLabel, percentSpan, mode) {
+    percent.style.display = mode;
+    percentLabel.style.display = mode;
+    percentSpan.style.display = mode;
 }
 
 function displayAllPayment(paymentDue, help, label, paymentReport, selectReport, mode) {
@@ -73,9 +86,4 @@ function displayPaymentDue(paymentDue, help, label, mode) {
 function displayPaymentReport(paymentReport, selectReport, mode) {
     paymentReport.style.display = mode;
     selectReport.style.display = mode;
-}
-
-function checkInstallments() {
-    paymentDue = document.getElementById("nbPayment");
-    alert(paymentDue.value);
 }

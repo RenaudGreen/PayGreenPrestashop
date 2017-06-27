@@ -24,21 +24,15 @@
 *
 */
 
-const CASH = 0;
-const SUB = 1;
-const  REC = 3;
-const DELIVERY = -1;
-
-
 $(document).ready(function() {
-    var selectList = document.querySelectorAll('[id=executedAt]');
-    for (var k = 0;k < selectList.length; k++) {
-        checkExecutedAt(selectList[k]);
-        selectList[k].onchange = function() {
-            checkExecutedAt(
-                this
-            );
-        }
+    var selectlist = document.querySelectorAll('[id=executedAt]');
+    for (var k = 0;k < selectlist.length; k++) {
+        checkExecutedAt(selectlist[k]);
+        selectlist[k].onchange = function() {
+        checkExecutedAt(
+            this
+        );
+    }
     }
 });
 
@@ -50,45 +44,46 @@ function checkExecutedAt(select) {
     var paymentReport = document.querySelectorAll('[id=labelReport]');
     var selectReport = document.querySelectorAll('[id=reportPayment]');
     var paymentDue = document.querySelectorAll('[id=nbPayment]');
+    var percent = document.querySelectorAll('[id=perCentPayment]');
+    var percentLabel = document.querySelectorAll('[id=labelPerCentPayment]');
+    var percentSpan = document.querySelectorAll('[id=spanPerCentPayment]');
     var n;
     for (var i = 0;i < temp.length; ++i) {
         if (temp[i] == select) {
             n = i;
         }
     }
-    if (select.value == SUB) {
-        displayAllPayment(paymentDue[n], help[n], label[n], paymentReport[n], selectReport[n], "block", select.value);
-    } else if (select.value == REC) {
-        displayPaymentReport(paymentReport[n], selectReport[n], "none", select.value);
-        displayPaymentDue(paymentDue[n], help[n], label[n], "block", select.value);
+    if (select.value == 1) {
+        displayAllPayment(paymentDue[n], help[n], label[n], paymentReport[n], selectReport[n], "block");
+        displayPerCentPayment(percent[n], percentLabel[n], percentSpan[n], "none");
+    } else if (select.value == 3) {
+        displayPaymentReport(paymentReport[n], selectReport[n], "none");
+        displayPaymentDue(paymentDue[n], help[n], label[n], "block");
+        displayPerCentPayment(percent[n], percentLabel[n], percentSpan[n], "block");
     } else {
-        displayAllPayment(paymentDue[n], help[n], label[n], paymentReport[n], selectReport[n], "none", select.value);
+        displayAllPayment(paymentDue[n], help[n], label[n], paymentReport[n], selectReport[n], "none");
+        displayPerCentPayment(percent[n], percentLabel[n], percentSpan[n], "none");
     }
 }
 
-function displayAllPayment(paymentDue, help, label, paymentReport, selectReport, mode, value) {
-    displayPaymentDue(paymentDue, help, label, mode, value);
-    displayPaymentReport(paymentReport, selectReport, mode, value);
+function displayPerCentPayment(percent, percentLabel, percentSpan, mode) {
+    percent.style.display = mode;
+    percentLabel.style.display = mode;
+    percentSpan.style.display = mode;
 }
 
-function displayPaymentDue(paymentDue, help, label, mode, value) {
-    if (value == CASH || value == DELIVERY) {
-        paymentDue.value = 1;
-    }
+function displayAllPayment(paymentDue, help, label, paymentReport, selectReport, mode) {
+    displayPaymentDue(paymentDue, help, label, mode);
+    displayPaymentReport(paymentReport, selectReport, mode);
+}
+
+function displayPaymentDue(paymentDue, help, label, mode) {
     paymentDue.style.display = mode;
     help.style.display = mode;
     label.style.display = mode;
 }
 
-function displayPaymentReport(paymentReport, selectReport, mode, value) {
-    if (value !=  SUB) {
-        selectReport.value = "0";
-    }
+function displayPaymentReport(paymentReport, selectReport, mode) {
     paymentReport.style.display = mode;
     selectReport.style.display = mode;
-}
-
-function checkInstallments() {
-    paymentDue = document.getElementById("nbPayment");
-    alert(paymentDue.value);
 }

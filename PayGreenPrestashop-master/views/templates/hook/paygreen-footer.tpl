@@ -25,9 +25,6 @@
     *}
     {if $color == 'green'} {$colorText='#25b373'} {else} {$colorText = $color } {/if}
     <section id="block_paygreen_infos" class="footer-block col-xs-12 col-sm-12 col-md-12 col-lg-4">
-        <img src="{$imgdir|escape:'html':'UTF-8'}footer/lock-{$color|escape:'html':'UTF-8'}.png" />
-        <span>{l s='Secured payment by' mod='paygreen'} : </span>
-
         <a href="{$backlink|escape:'html':'UTF-8'}" target="_blank" title="paygreen" >
             <img src="{$imgdir|escape:'html':'UTF-8'}footer/paygreen-{$color|escape:'html':'UTF-8'}.png"
             alt ="{l s='Secured Payment with Paygreen' mod='paygreen'}"/>

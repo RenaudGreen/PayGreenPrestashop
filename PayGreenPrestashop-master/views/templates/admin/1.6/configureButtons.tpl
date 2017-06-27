@@ -23,7 +23,6 @@
 *  International Registered Trademark & Property of PrestaShop SA
 *
 *}
-<script type="text/javascript" src="/modules/paygreen/views/js/1.7/back.js"></script>
 <div class="panel">
     <div class="panel-heading">
         <i class="icon-image"></i> {l s='Configuration payment buttons' mod='paygreen'}
@@ -137,6 +136,21 @@
                                 <input id="nbPayment" name="nbPayment" type="number" min="0" max="24"
                                        class="form-control input-md" value="{$btn['nbPayment'|escape:'html':'UTF-8']}">
                                 <span class="help-block" id="spanNbPayment">{l s='Defines the payment duration in months' mod='paygreen'}</span>
+                            </div>
+                        </div>
+
+                        <!-- Text input-->
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" id="labelPerCentPayment"
+                                   for="perCentPayment">{l s='Per cent for first installments' mod='paygreen'}</label>
+                            <div class="col-md-7">
+                                <input id="perCentPayment" name="perCentPayment" type="number" min="1" max="100"
+                                       class="form-control input-md" 
+                                       {if $btn['perCentPayment'] neq 0}
+                                        value="{$btn['perCentPayment'|escape:'html':'UTF-8']}"
+                                        {/if}>
+                                       
+                                <span class="help-block" id="spanPerCentPayment">{l s='Define per cent for first installment,if empty ignore' mod='paygreen'}</span>
                             </div>
                         </div>
 

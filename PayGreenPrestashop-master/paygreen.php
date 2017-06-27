@@ -131,6 +131,7 @@ class Paygreen extends PaymentModule
         "position" => null,
         "height" => 0,
         "displayType" => null,
+        "perCentPayment" => null,
         "nbPayment" => 1,
         "reportPayment" => 0,
         "minAmount" => null,
@@ -152,7 +153,7 @@ class Paygreen extends PaymentModule
 
         $this->name = 'paygreen';
         $this->tab = 'payments_gateways';
-        $this->version = '2.0.2';
+        $this->version = '2.1.0';
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => '1.7');
         $this->author = 'Watt Is It';
         $this->need_instance = 1;
@@ -458,7 +459,8 @@ class Paygreen extends PaymentModule
                     $totalCart,
                     $currency->iso_code,
                     $btn['executedAt'],
-                    $btn['reportPayment']
+                    $btn['reportPayment'],
+                    $btn['perCentPayment']
                 );
             }
 
@@ -1035,7 +1037,7 @@ class Paygreen extends PaymentModule
             $this->local_path . 'views/templates/admin/' . $version . '/connectApi.tpl'
         );
         $output .= $this->renderForm();
-       /* $this->context->controller->addJS($this->local_path . 'views/js/' . $version . '/back.js');*/
+        $this->context->controller->addJS($this->local_path . 'views/js/' . $version . '/back.js');
         $this->context->controller->addCSS($this->local_path . 'views/css/' . $version . '/back.css');
 
         $output .= $this->context->smarty->fetch(
@@ -1444,6 +1446,7 @@ class Paygreen extends PaymentModule
             }
 
             foreach (array_keys($modelButton) as $key) {
+                var_dump(Tools::getValue($key, $modelButton[$key]));
                 $value = Tools::getValue($key, $modelButton[$key]);
                 //$this->log("addButton", 'value : ' . $key . ' -> ' . $value);
                 if (!empty($value) && isset($value)) {
@@ -1499,8 +1502,16 @@ class Paygreen extends PaymentModule
         return '';
     }
 
-    private function generatePaiementData($transactionId, $nbPaiement, $amount, $currency, $typePayment, $reportPayment)
-    {
+    private function generatePaiementData(
+        $transactionId,
+        $nbPaiement,
+        $amount,
+        $currency,
+        $typePayment,
+        $reportPayment,
+        $percent = null
+    ) {
+        ceil(round($amount * 100) * $percent / 100);
         $paiement = $this->getCaller();
         $paiement->transaction(
             $transactionId,
@@ -1522,6 +1533,9 @@ class Paygreen extends PaymentModule
                     );
                     break;
                 case 3:
+                    if ($percent != null && $percent > 0 && $percent < 100) {
+                        $paiement->subscriptionFirstAmount(ceil(round($amount * 100) * $percent / 100));
+                    }
                     $paiement->xTimePaiement($nbPaiement, $reportPayment);
                     break;
             }
@@ -1589,7 +1603,8 @@ class Paygreen extends PaymentModule
                     $totalCart,
                     $currency->iso_code,
                     $btn['executedAt'],
-                    $btn['reportPayment']
+                    $btn['reportPayment'],
+                    $btn['perCentPayment']
                 );
             }
 

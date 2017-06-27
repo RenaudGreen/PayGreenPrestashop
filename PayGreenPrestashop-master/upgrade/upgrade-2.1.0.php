@@ -24,16 +24,10 @@
  *  International Registered Trademark & Property of PrestaShop SA
  */
 
-function upgrade_module_1_3_0($object)
+function upgrade_module_2_1_0()
 {
-    return $object->registerHook('postUpdateOrderStatus') &&
-    $object->registerHook('ActionObjectOrderSlipAddAfter') &&
-    $object->registerHook('displayFooter') &&
-    DB::getInstance()->execute('CREATE TABLE IF NOT EXISTS `ps_paygreen_transactions` (
-        `id_cart` int(11) NOT NULL,
-        `pid` varchar(250) NOT NULL,
-        `id_order` int(11) NOT NULL,
-        `state` varchar(50) NOT NULL,
-        `type` varchar(50) NOT NULL
-    ) ENGINE=InnoDB DEFAULT CHARSET=latin1;');
+    return Db::getInstance()->Execute(
+        'ALTER TABLE '._DB_PREFIX_.'paygreen_buttons
+        ADD `perCentPayment` INT NULL'
+    );
 }
