@@ -124,14 +124,13 @@ class Paygreen extends PaymentModule
         'WF'
     );
 
-   protected $model_buttons = array(
+    protected $model_buttons = array(
         "id" => 0,
         "label" => null,
         "image" => null,
         "position" => null,
         "height" => 0,
         "displayType" => null,
-        "integration" => 0,
         "nbPayment" => 1,
         "reportPayment" => 0,
         "minAmount" => null,
@@ -568,10 +567,7 @@ class Paygreen extends PaymentModule
             return;
         }
         $payment_options = $this->getExternalPaymentOption();
-        $payment = $payment_options +  $this->getIframePaymentOption();
-        ksort($payment);
-        var_dump($payment);
-        return $payment;
+        return $payment_options;
     }
 
     /**
@@ -1685,191 +1681,6 @@ class Paygreen extends PaymentModule
             $a_externalOption[(int)$btn['position']] = $btnPayment;
         }
         return $a_externalOption;
-    }
-
-    public function getIframePaymentOption()
-    {
-        if ($this->verifyConfiguration() != '') {
-            return false;
-        }
-        if ($this->getPaygreenConfig('type') != 'LC' && !$this->paygreenValidIds()) {
-            return false;
-        }
-
-        //$config = $this->getConfig();
-
-        if (!$this->isVisible()) {
-            return false;
-        }
-
-        $a_iFrameOption = array();
-
-
-        $totalCart = $this->context->cart->getOrderTotal();
-        try {
-            $currentConfigureListButtons = $this->getButtonsList();
-        } catch (Exception $ex) {
-            $this->l('Access to dataBase fail');
-            return false;
-        }
-        foreach ($currentConfigureListButtons as $btn) {
-            //Test
-            // SI false > continue
-            if ($this->checkButton($btn) != '') {
-                continue;
-            }
-            if (isset($btn['integration']) && $btn['integration'] == self::BUTTON_IFRAME) {
-                if (isset($btn['minAmount'])) {
-                    if ($btn['minAmount'] > 0 && $totalCart < $btn['minAmount']) {
-                        continue;
-                    }
-                }
-
-                if (isset($btn['maxAmount'])) {
-                    if ($btn['maxAmount'] > 0 && $totalCart > $btn['maxAmount']) {
-                        continue;
-                    }
-                }
-                if (isset($btn['nbPayment']) && isset($btn['executedAt'])) {
-                    if (!isset($btn['reportPayment'])) {
-                        $btn['reportPayment'] = 0;
-                    }
-                    $paiement = $this->roundingWeb($btn);
-                }
-
-                switch ($btn['executedAt']) {
-                    // At the delivery
-                    case -1:
-                        $paiement->cardPrint();
-                        break;
-                }
-
-                if (!isset($paiement)) {
-                    return false;
-                }
-                $icondir = $this->getIconDirectory("
-
-                    ", true);
-                if ($btn['image'] == '') {
-                    $icondir .= 'paygreen_paiement1_7.png';
-                } else {
-                    $icondir .= $btn['image'];
-                }
-                $logos = Media::getMediaPath($icondir);
-                $iFrame = new \PrestaShop\PrestaShop\Core\Payment\PaymentOption();
-
-                if ($btn['displayType'] == self::DISPLAYB_LABEL_LOGO) {
-                    $iFrame ->setLogo($logos)
-                            ->setCallToActionText($this->l($btn['label']));
-                } elseif ($btn['displayType'] == self::DISPLAYB_LOGO) {
-                     $iFrame->setLogo($logos);
-                } elseif ($btn['displayType'] == self::DISPLAYB_LABEL) {
-                    $iFrame->setCallToActionText($this->l($btn['label']));
-                }
-
-                $result = $this->createCash($btn['id'], $totalCart, $paiement);
-                var_dump($btn['id']);
-                var_dump($totalCart);
-                var_dump($paiement);
-                var_dump($result);
-                if ($result != null) {
-                    var_dump('ici');
-                    $iFrame->setAdditionalInformation(
-                       $this->generateIframeForm($btn['id'], $totalCart, $result)
-                    );
-                    var_dump('expression');
-                    $iFrame->setAction($this->context->link->getModuleLink($this->name, 'validationInsite', array(), true));
-                    $iFrame->setInputs(array(
-                        'pid' => array(
-                                        'name' =>'pid',
-                                        'type' =>'hidden',
-                                        'value' => substr($result->{'data'}->{'id'}, 2)
-                                    ),
-                        'cart_id' => array(
-                                        'name' => 'cart_id',
-                                        'type' => 'hidden',
-                                        'value' => $paiement->toArray()['cart_id']
-                                    ),
-                        'id' => array(
-                                        'name' =>'id',
-                                        'type' =>'hidden',
-                                        'value' => $btn['id']
-                                    ),
-                    ));
-                    var_dump($iFrame);
-                }
-                $a_iFrameOption[(int)$btn['position']] = $iFrame;
-            }
-        }
-        return $a_iFrameOption;
-    }
-
-    public function roundingWeb($btn)
-    {
-        if ($this->verifyConfiguration() != '') {
-            return false;
-        }
-        if ($this->getPaygreenConfig('type') != 'LC' && !$this->paygreenValidIds()) {
-            return false;
-        }
-
-        $cust = new Customer((int)$this->context->cookie->id_customer);
-        $currency = new Currency((int)$this->context->cart->id_currency);
-
-        $totalCart = $this->context->cart->getOrderTotal();
-
-        $paiement = $this->generatePaiementData(
-            $this->context->cart->id,
-            $btn['nbPayment'],
-            $totalCart,
-            $currency->iso_code,
-            $btn['executedAt'],
-            $btn['reportPayment']
-        );
-        switch ($btn['executedAt']) {
-            // At the delivery
-            case -1:
-                $paiement->cardPrint();
-                break;
-        }
-
-        if (!isset($paiement)) {
-            return false;
-        }
-
-        $paiement->customer(
-            $cust->id,
-            $cust->lastname,
-            $cust->firstname,
-            $cust->email
-        );
-
-        $paiement->cart_id = $this->context->cart->id;
-
-        if (isset($btn['label'])) {
-            $paiement->paiement_btn = $btn['label'];
-        }
-
-        $paiement->return_cancel_url = $this->getShopUrl() . 'modules/paygreen/validation.php';
-        $paiement->return_url = $this->getShopUrl() . 'modules/paygreen/validation.php';
-        $paiement->return_callback_url = $this->getShopUrl() . 'modules/paygreen/notification.php';
-
-
-        $address = new Address($this->context->cart->id_address_delivery);
-        $paiement->shippingTo(
-            $address->lastname,
-            $address->firstname,
-            $address->address1,
-            $address->address2,
-            $address->company,
-            $address->postcode,
-            $address->city,
-            $address->country
-        );
-        if (!empty($_SERVER['HTTPS']) || !$this->getPaygreenConfig('type') == 'P') {
-            $paiement->inSite();
-        }
-        return $paiement;
     }
 
     /**
