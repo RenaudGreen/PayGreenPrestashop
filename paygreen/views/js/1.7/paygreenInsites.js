@@ -47,7 +47,7 @@
 			$('body').prepend($("#insiteTpl").tmpl(params));
 		    imageControl();
 		    numberInput();
-		    var popID = $("#script"+ params.id).parent().attr('id').slice(0,16)  +"-additional-information";
+		    var popID = $("#plugin"+ params.id).parent().attr('id').slice(0,16)  +"-additional-information";
 			var reg = new RegExp('.*insite=' + params.id + '.*', 'i');
 			if (!reg.test($(location).attr('href'))) {
 			} else {
@@ -55,7 +55,7 @@
 				selectorById('holds-the-iframe').removeClass('hidden');
 				selectorById('holds-the-iframe').parent().addClass("popup_block");
 				control();
-				document.getElementById($("#script"+ params.id).parent().attr('id').slice(0,16)).click();
+				document.getElementById($("#plugin"+ params.id).parent().attr('id').slice(0,16)).click();
 			}
 			checked();
 			//input For payment option
@@ -246,7 +246,14 @@
 		}
 
 		function prestaIntegration() {
-			$("#" + $("#script"+ params.id).parent().attr('id').slice(0,16)).on('click',function () {
+			$("#" + $("#plugin"+ params.id).parent().attr('id').slice(0,16)).on('click',function () {
+				console.log()
+				if ($(window).width() <= 700) {
+					window.top.window.scrollTo(0, 0);
+				} else {
+					window.top.window.scrollTo(0, 0);
+					$('#popIn' + params.id).addClass('popup_border');
+				}
 				$(".option." + params.id).prop('checked', false);
 				checked();
 				var number = selectorById('number');
@@ -264,7 +271,7 @@
 				popIN();
             });
 
-            document.getElementById($("#script"+ params.id).parent().attr('id').slice(0,16)).click();
+            document.getElementById($("#plugin"+ params.id).parent().attr('id').slice(0,16)).click();
 		}
 		//TOOLS
 		function popIN() {	

@@ -1987,11 +1987,6 @@ class Paygreen extends PaymentModule
         $f_amount = $client->amount / 100;
         $o_cart = new Cart($client->cart_id);
         $o_customer = new Customer((int)$o_cart->id_customer);
-        try {
-            $isInsite = $client -> display == 'insite';
-        } catch (Exception $e) {
-            $isInsite = false;
-        }
 
         if ($client->result['status'] == PaygreenClient::STATUS_REFUSED) {
             $status = Configuration::get('PS_OS_ERROR');
@@ -2004,7 +1999,7 @@ class Paygreen extends PaymentModule
         } elseif ($client->result['status'] == PaygreenClient::STATUS_SUCCESSED) {
             $status = Configuration::get('PS_OS_PAYMENT');
         } else {
-            if (!$isCallback && !$isInsite) {
+            if (!$isCallback) {
                 $this->redirectToConfirmationPage();
             }
             return true;
@@ -2081,7 +2076,7 @@ class Paygreen extends PaymentModule
                 $o_order->setCurrentState($status);
                 $o_order->save();
             }
-            if (!$isCallback && !$isInsite) {
+            if (!$isCallback) {
                 $b_err = !in_array($status, array(
                     _PS_OS_PAYMENT_,
                     Configuration::get(self::_CONFIG_ORDER_AUTH),

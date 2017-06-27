@@ -37,7 +37,7 @@
     		{
     			"id" :{/literal} {$id|escape:'html':'UTF-8'},
     			"amount": {$amount|escape:'html':'UTF-8'},
-                "url":"{$url|escape:'html':'UTF-8}",
+                "url":"{$url|escape:'html':'UTF-8'}",
     			{literal}
     			"asso": [
     				{"associationId": "1", "name": "Asso6", "imageUrl": "http://localhost:8017/modules/paygreen/views/img/icons/association1.jpg"},
