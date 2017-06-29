@@ -154,6 +154,14 @@
                             </div>
                         </div>
 
+                        <!-- CheckBox Basic -->
+                        <div class="form-group">
+                            <label class="control-label col-md-4" id ="labelSubOption">{l s='Recreer le panier' mod='paygreen'}</label>
+                            <div class="checkbox col-md-7">
+                                <label id ="inputSubOption"><input type="checkBox" name="subOption" id="subOption" value="1" {if $btn['subOption'] == 1} checked {/if}>{l s='Activer l\'option' mod='paygreen'}</label>
+                                <p class="help-block" id ="spanSubOption">{l s='A chaque échance recreer le meme panier' mod='paygreen'}</p>
+                            </div>
+                        </div>
                         <!-- Select Basic -->
                         <div class="form-group">
                             <label class="col-md-4 control-label"

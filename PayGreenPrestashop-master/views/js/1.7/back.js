@@ -47,6 +47,10 @@ function checkExecutedAt(select) {
     var percent = document.querySelectorAll('[id=perCentPayment]');
     var percentLabel = document.querySelectorAll('[id=labelPerCentPayment]');
     var percentSpan = document.querySelectorAll('[id=spanPerCentPayment]');
+    var subOption = document.querySelectorAll('[id=subOption]');
+    var subOptionLabel = document.querySelectorAll('[id=labelSubOption]');
+    var subOptionSpan = document.querySelectorAll('[id=spanSubOption]');
+    var subOptionInput = document.querySelectorAll('[id=inputSubOption]');
     var n;
     for (var i = 0;i < temp.length; ++i) {
         if (temp[i] == select) {
@@ -56,14 +60,24 @@ function checkExecutedAt(select) {
     if (select.value == 1) {
         displayAllPayment(paymentDue[n], help[n], label[n], paymentReport[n], selectReport[n], "block");
         displayPerCentPayment(percent[n], percentLabel[n], percentSpan[n], "none");
+        displaySubOption(subOption[n], subOptionLabel[n], subOptionSpan[n], subOptionInput[n], "block");
     } else if (select.value == 3) {
         displayPaymentReport(paymentReport[n], selectReport[n], "none");
         displayPaymentDue(paymentDue[n], help[n], label[n], "block");
         displayPerCentPayment(percent[n], percentLabel[n], percentSpan[n], "block");
+        displaySubOption(subOption[n], subOptionLabel[n], subOptionSpan[n], subOptionInput[n], "none");
     } else {
         displayAllPayment(paymentDue[n], help[n], label[n], paymentReport[n], selectReport[n], "none");
         displayPerCentPayment(percent[n], percentLabel[n], percentSpan[n], "none");
+        displaySubOption(subOption[n], subOptionLabel[n], subOptionSpan[n], subOptionInput[n], "none");      
     }
+}
+
+function displaySubOption(subOption, subOptionLabel, subOptionSpan, subOptionInput, mode) {
+    subOption.style.display = mode;
+    subOptionLabel.style.display = mode;
+    subOptionSpan.style.display = mode;
+    subOptionInput.style.display = mode;
 }
 
 function displayPerCentPayment(percent, percentLabel, percentSpan, mode) {

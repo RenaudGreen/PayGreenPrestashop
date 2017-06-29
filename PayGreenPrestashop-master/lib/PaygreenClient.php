@@ -235,6 +235,15 @@ class PaygreenClient
         $this->reccuringFirstAmountDate = $firstAmountDate;
     }
 
+    public function setFirstAmount($firstAmount)
+    {
+        if ($firstAmount < 0) {
+            throw new \Exception("Le firstAmount doit être postif ou nul", 1);
+        } else {
+           $this->reccuringFirstAmount = $firstAmount;    
+        }
+    }
+
     public function xTimePaiement($nbPaiement, $reportPayment = null)
     {
         $amount = $this->amount;

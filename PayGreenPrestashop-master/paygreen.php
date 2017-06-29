@@ -132,6 +132,7 @@ class Paygreen extends PaymentModule
         "height" => 0,
         "displayType" => null,
         "perCentPayment" => null,
+        "subOption" => 0,
         "nbPayment" => 1,
         "reportPayment" => 0,
         "minAmount" => null,
@@ -1446,7 +1447,6 @@ class Paygreen extends PaymentModule
             }
 
             foreach (array_keys($modelButton) as $key) {
-                var_dump(Tools::getValue($key, $modelButton[$key]));
                 $value = Tools::getValue($key, $modelButton[$key]);
                 //$this->log("addButton", 'value : ' . $key . ' -> ' . $value);
                 if (!empty($value) && isset($value)) {
@@ -1526,7 +1526,7 @@ class Paygreen extends PaymentModule
                     $startAtReportPayment = ($reportPayment == 0) ? null : strtotime($reportPayment);
 
                     $paiement->subscribtionPaiement(
-                        PaygreenClient::RECURRING_MONTHLY,
+                        PaygreenClient::RECURRING_DAILY,
                         $nbPaiement,
                         date('d'),
                         $startAtReportPayment
@@ -1534,7 +1534,7 @@ class Paygreen extends PaymentModule
                     break;
                 case 3:
                     if ($percent != null && $percent > 0 && $percent < 100) {
-                        $paiement->subscriptionFirstAmount(ceil(round($amount * 100) * $percent / 100));
+                        $paiement->setFirstAmount(ceil(round($amount * 100) * $percent / 100));
                     }
                     $paiement->xTimePaiement($nbPaiement, $reportPayment);
                     break;
@@ -1778,7 +1778,7 @@ class Paygreen extends PaymentModule
     }
 
     public function validateWebPayment($a_data, $isCallback = false)
-    {
+    {   
         $this->log('validateWebPayment', $isCallback ? 'CALLBACK' : 'RETURN');
 
         if (!isset($a_data['data'])) {
@@ -1835,7 +1835,6 @@ class Paygreen extends PaymentModule
         $a_vars['amount'] = $client->amount;
         $a_vars['currency'] = $client->currency;
         $a_vars['by'] = 'webPayment';
-
         $n_order_id = (int)Order::getOrderByCartId($o_cart->id);
 
         if (!$this->isPaygreenSamePID($client->cart_id, $client->pid)) {
@@ -1856,23 +1855,19 @@ class Paygreen extends PaymentModule
                 false,
                 $o_customer->secure_key
             );
-            $n_order_id = (int)Order::getOrderByCartId((int)$o_cart->id);
-
             $this->log('validateWebPayment-validateOrder', $n_order_id);
+            $isValidation = false;
         } else {
             $this->log('Order already exists => ', $n_order_id);
+            $isValidation = true;
         }
 
         if ($n_order_id) {
-            $o_order = new Order($n_order_id);
-
-            $this->insertPaygreenTransaction(
-                $n_order_id,
-                $client,
-                $o_cart->id,
-                $o_order->current_state,
-                $client->amount
-            );
+            if ($isValidation == true && $isCallback == false) {
+               $o_order =  $this->duplicateOrder($n_order_id);
+            } else {
+                $o_order = new Order($n_order_id);
+            }
 
             $this->log('Id existant : ', $n_order_id);
             $this->log('validateWebPayment-order', $o_order);
@@ -1925,6 +1920,28 @@ class Paygreen extends PaymentModule
         Tools::redirectLink(__PS_BASE_URI__ . 'order-confirmation.php?' . http_build_query($a_query));
     }
 
+    public function duplicateOrder($id_order){
+        $order = new Order($id_order);
+        $duplicatedOrder = $order->duplicateObject();
+        $orderDetailList = $order->getOrderDetailList();
+        foreach ($orderDetailList as $detail) {
+            $orderDetail = new orderDetail($detail['id_order_detail']);
+            $duplicatedOrderDetail = $orderDetail->duplicateObject();
+            $duplicatedOrderDetail->id_order = $duplicatedOrder->id;
+            $duplicatedOrderDetail->save();
+        }
+
+        $orderHistoryList = $order->getHistory(Configuration::get('PS_LANG_DEFAULT'));
+        foreach ($orderHistoryList as $history) {
+            $orderHistory = new OrderHistory($history['id_order']);
+            $duplicatedOrderHistory = $orderHistory->duplicateObject();
+            $duplicatedOrderHistory->id_order = $duplicatedOrder->id;
+            $duplicatedOrderHistory->save();
+        }
+        return $order;
+    }
+
+
     /**
      * Insert paygreen transaction with id_order and pid
      * @param $id_order
@@ -1935,7 +1952,7 @@ class Paygreen extends PaymentModule
      */
     protected function insertPaygreenTransaction($id_order, $client, $id_cart, $current_state, $amount)
     {
-
+        $this->log("insertPaygreen pid", pSQL($client->pid));
         if ($this->isPaygreenSamePID($id_cart, $client->pid)) {
             return false;
         }
@@ -1952,9 +1969,10 @@ class Paygreen extends PaymentModule
         if ($this->insertTransaction($paygreenTransaction)) {
             // INSERTION Of deadlines if recurring payment
             if ($client->mode == 'RECURRING') {
-                $this->insertPaygreenRecurringTransaction($id_cart, $current_state, $client->pid, $amount);
+                return $this->insertPaygreenRecurringTransaction($id_cart, $current_state, $client->pid, $amount);
             }
         }
+        return false;
     }
 
     /**
@@ -1987,20 +2005,31 @@ class Paygreen extends PaymentModule
         } catch (Exception $ex) {
             return false;
         }
-
-        $date = new DateTime();
-        $recurringTransaction = array();
-        $recurringTransaction['id'] = $id;
-        $recurringTransaction['rank'] = $rank;
-        $recurringTransaction['pid'] = pSQL($pid);
-        $recurringTransaction['amount'] = $amount;
-        $recurringTransaction['state'] = pSQL($current_state);
-        $recurringTransaction['date_payment'] = pSQL($date->format('Y-m-d H:i:s'));
         try {
-            Db::getInstance()->insert('paygreen_recurring_transaction', $recurringTransaction);
+            $isValidate = Db::getInstance()->getValue(
+                'SELECT COUNT(*) FROM ' . _DB_PREFIX_ .'paygreen_recurring_transaction
+                WHERE pid=' . pSQL($pid));
         } catch (Exception $ex) {
             return false;
         }
+
+        if ($isValidate == 0) {
+            $date = new DateTime();
+            $recurringTransaction = array();
+            $recurringTransaction['id'] = $id;
+            $recurringTransaction['rank'] = $rank;
+            $recurringTransaction['pid'] = pSQL($pid);
+            $recurringTransaction['amount'] = $amount;
+            $recurringTransaction['state'] = pSQL($current_state);
+            $recurringTransaction['date_payment'] = pSQL($date->format('Y-m-d H:i:s'));
+            try {
+                Db::getInstance()->insert('paygreen_recurring_transaction', $recurringTransaction);
+            } catch (Exception $ex) {
+                return false;
+            }
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -2447,6 +2476,15 @@ class Paygreen extends PaymentModule
         }
         $report = $btn['reportPayment'];
 
+        if (!isset($btn['perCentPayment'])) {
+            return $error;
+        }
+        $percent = $btn['perCentPayment'];
+
+        if (!isset($btn['subOption'])) {
+            return $error;
+        }
+        $subOption = $btn['subOption'];
         if ($nbPayment > 1) {
             // Cash payment
             if ($type == self::CASH_PAYMENT) {
@@ -2472,11 +2510,23 @@ class Paygreen extends PaymentModule
             // Cash payment
             if ($type == self::CASH_PAYMENT) {
                 $error .= $this->l('The cash payment can\'t have a report payment');
-            } else {
-                if ($type == self::DEL_PAYMENT || $type == self::REC_PAYMENT) {
-                    $error .= $this->l('The payment at the delivery can\'t have a report payment');
-                }
+            } elseif ($type == self::DEL_PAYMENT) {
+                $error .= $this->l('The payment at the delivery can\'t have a report payment');
+            } elseif ($type == self::REC_PAYMENT) {
+                $error .= $this->l('The recurring payment can\'t have a report payment');
             }
+        }
+        if ($percent != 0) {
+            if ($type == self::REC_PAYMENT) {
+                if (!($percent > 0 && $percent < 100)) {
+                    $error .= $this->l('The percent must be  between 1 and 99');
+                }
+            } else {
+                $error .= $this->l('This option is only for recurring payment');
+            }
+        }
+        if ($subOption == 1 && $type != self::SUB_PAYMENT) {
+            $error .= $this->l('The option is only for subscription payment');
         }
         return $error;
     }
