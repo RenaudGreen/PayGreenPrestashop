@@ -36,6 +36,7 @@ $sql[] = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'paygreen_buttons` (
   `nbPayment` INT NOT NULL DEFAULT 1,
   `perCentPayment` INT NULL,
   `subOption` INT DEFAULT 0,
+  `reductionPayment` VARCHAR(45) DEFAULT \'none\',
   `minAmount` DECIMAL(10,2) NULL,
   `maxAmount` DECIMAL(10,2) NULL,
   `executedAt` INT NULL DEFAULT 0,

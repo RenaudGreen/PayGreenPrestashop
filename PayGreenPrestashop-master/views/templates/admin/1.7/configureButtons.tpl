@@ -25,7 +25,7 @@
 *}
 <div class="panel">
     <div class="panel-heading">
-        <i class="icon-image"></i> {l s='Configuration Payment Butons' mod='paygreen'}
+        <i class="icon-image"></i> {l s='Configuration payment buttons' mod='paygreen'}
     </div>
     <div class="row">
         {foreach from=$buttons key=key item=btn}
@@ -45,13 +45,18 @@
                                     <strong>{$btn['error']|escape:'htmlall':'UTF-8'}</strong>
                                 </div>
                             {/if}
+                            {if isset($btn['warning'])}
+                                <div class="alert alert-warning">
+                                    <strong>{$btn['warning']|escape:'htmlall':'UTF-8'}</strong>
+                                </div>
+                            {/if}
                         <!-- Text input-->
                         <div class="form-group">
-                            <label class="col-md-4 control-label" for="label">{l s='Button label' mod='paygreen'}</label>
+                            <label class="col-md-4 control-label" for="label">{l s='Label' mod='paygreen'}</label>
                             <div class="col-md-7">
                                 <input id="label" name="label" type="text"
                                        placeholder="{l s='Button label' mod='paygreen'}" class="form-control input-md"
-                                       required="required" value="{$btn['label']|escape:'html':'UTF-8'}" maxlength="30">
+                                       required="required" value="{$btn['label']|escape:'html':'UTF-8'}">
                                 <span class="help-block">{l s='Text displayed to the right of the icon' mod='paygreen'}</span>
                             </div>
                         </div>
@@ -73,20 +78,31 @@
                                                 src="{$icondir|escape:'html':'UTF-8'}{$btn['image']|escape:'html':'UTF-8'}"
                                                 style="max-height:40px;"/></a>
                                 {else}
-                                    <img src="{$icondir|escape:'html':'UTF-8'}paygreen_paiement1_7.png"
+                                    <img src="{$icondir|escape:'html':'UTF-8'}paygreen_paiement1_6.png"
                                          style="max-height:40px;"/>
                                 {/if}
                             </div>
                         </div>
+                        <!-- Text input-->
+                        <div class="form-group">
+                            <label class="col-md-4 control-label"
+                                   for="height">{l s='Image height' mod='paygreen'}</label>
+                            <div class="col-md-7">
+                                <input id="height" name="height" type="number" placeholder=""
+                                       class="form-control input-md" value="{if $btn['height'] > 0}{$btn['height']|escape:'html':'UTF-8'}{else}{60}{/if}">
+                                <span class="help-block">{l s='If empty, the image will be displayed full-size' mod='paygreen'}</span>
+                            </div>
+                        </div>
+
                         <!-- Select Basic -->
                         <div class="form-group">
                             <label class="col-md-4 control-label"
                                    for="displayType">{l s='Display type' mod='paygreen'}</label>
                             <div class="col-md-7">
                                 <select id="displayType" name="displayType" class="form-control">
-                                    <option value="1"{if $btn['displayType'] == '1'} selected="selected"{/if}>{l s='Image' mod='paygreen'}</option>
-                                    <option value="2"{if $btn['displayType'] == '2'} selected="selected"{/if}>{l s='Label' mod='paygreen'}</option>
-                                    <option value="3"{if $btn['displayType'] == '3'} selected="selected"{/if}>{l s='Label + Image' mod='paygreen'}</option>
+                                    <option value="bloc"{if $btn['displayType'] == 'bloc'} selected="selected"{/if}>{l s='bloc without arrow' mod='paygreen'}</option>
+                                    <option value="full"{if $btn['displayType'] == 'full'} selected="selected"{/if}>{l s='Complete ligne' mod='paygreen'}</option>
+                                    <option value="half"{if $btn['displayType'] == 'half'} selected="selected"{/if}>{l s='Half line' mod='paygreen'}</option>
                                 </select>
                             </div>
                         </div>
@@ -119,8 +135,8 @@
 
                         <!-- Text input-->
                         <div class="form-group">
-                            <label class="col-md-4 control-label"
-                                   for="nbPayment" id="labelNbPayment">{l s='Number of installments' mod='paygreen'}</label>
+                            <label class="col-md-4 control-label" id="labelNbPayment"
+                                   for="nbPayment">{l s='Number of installments' mod='paygreen'}</label>
                             <div class="col-md-7">
                                 <input id="nbPayment" name="nbPayment" type="number" min="0" max="24"
                                        class="form-control input-md" value="{$btn['nbPayment'|escape:'html':'UTF-8']}">
@@ -128,18 +144,21 @@
                             </div>
                         </div>
 
-                         <!-- Text input-->
+                        <!-- Text input-->
                         <div class="form-group">
                             <label class="col-md-4 control-label" id="labelPerCentPayment"
-                                   for="perCentPayment">{l s='Per cent for first installments' mod='paygreen'}</label>
+                                   for="perCentPayment">{l s='Pourcentage de la première écheance' mod='paygreen'}</label>
                             <div class="col-md-7">
-                                <input id="perCentPayment" name="perCentPayment" type="number" min="1" max="100"
-                                       class="form-control input-md" 
-                                       {if $btn['perCentPayment'] neq 0}
-                                        value="{$btn['perCentPayment'|escape:'html':'UTF-8']}"
-                                        {/if}>
+                                <div class="input-group">
+                                    <span class="input-group-addon">%</span>
+                                    <input id="perCentPayment" name="perCentPayment" type="number" min="1" max="99"
+                                           class="form-control input-md" 
+                                           {if $btn['perCentPayment'] neq 0}
+                                            value="{$btn['perCentPayment'|escape:'html':'UTF-8']}"
+                                            {/if}>
+                                </div>
                                        
-                                <span class="help-block" id="spanPerCentPayment">{l s='Define per cent for first installment,if empty ignore' mod='paygreen'}</span>
+                                <span class="help-block" id="spanPerCentPayment">{l s='si vide, sera calculé automatiquement' mod='paygreen'}</span>
                             </div>
                         </div>
 
@@ -148,17 +167,16 @@
                             <label class="control-label col-md-4" id ="labelSubOption">{l s='Recreer le panier' mod='paygreen'}</label>
                             <div class="checkbox col-md-7">
                                 <label id ="inputSubOption"><input type="checkBox" name="subOption" id="subOption" value="1" {if $btn['subOption'] == 1} checked {/if}>{l s='Activer l\'option' mod='paygreen'}</label>
-                                <p class="help-block" id ="spanSubOption">{l s='A chaque échance recreer le meme panier' mod='paygreen'}</p>
+                                <p class="help-block" id ="spanSubOption">{l s='A chaque échance recréer la même commande' mod='paygreen'}</p>
                             </div>
                         </div>
-
                         <!-- Select Basic -->
                         <div class="form-group">
                             <label class="col-md-4 control-label"
                                    for="displayType" id ="labelReport">{l s='Payment deferment' mod='paygreen'}</label>
                             <div class="col-md-7">
                                 <select id="reportPayment" name="reportPayment" class="form-control">
-                                    <option value="0"{if $btn['reportPayment'] == '0'} selected="selected"{/if}>{l s='No deferment' mod='paygreen'}</option>
+                                    <option value="0"{if $btn['reportPayment'] == '0'} selected="selected"{/if}>{l s='No report' mod='paygreen'}</option>
                                     <option value="1 week"{if $btn['reportPayment'] == '1 week'} selected="selected"{/if}>{l s='1 week' mod='paygreen'}</option>
                                     <option value="2 weeks"{if $btn['reportPayment'] == '2 weeks'} selected="selected"{/if}>{l s='2 weeks' mod='paygreen'}</option>
                                     <option value="1 month"{if $btn['reportPayment'] == '1 month'} selected="selected"{/if}>{l s='1 month' mod='paygreen'}</option>
@@ -167,6 +185,19 @@
                                 </select>
                             </div>
                         </div>
+
+                         <!-- Text input-->
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" id="labelReductionPayment"
+                                   for="ReductionPayment">{l s='Réduction' mod='paygreen'}</label>
+                            <div class="col-md-7">
+
+                                {html_options name=reductionPayment options=$promoCode selected=$btn['reductionPayment']}
+                                       
+                                <span class="help-block" id="spanReductionPayment">{l s='Régle de panier non visible' mod='paygreen'}</span>
+                            </div>
+                        </div>
+
 
                         <!-- Text input-->
                         <div class="form-group">

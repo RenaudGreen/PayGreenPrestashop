@@ -133,6 +133,7 @@ class Paygreen extends PaymentModule
         "displayType" => null,
         "perCentPayment" => null,
         "subOption" => 0,
+        "reductionPayment" => "none",
         "nbPayment" => 1,
         "reportPayment" => 0,
         "minAmount" => null,
@@ -428,17 +429,30 @@ class Paygreen extends PaymentModule
             $this->l('Access to dataBase fail');
             return false;
         }
-        $totalCart = $this->context->cart->getOrderTotal();
         $buttons = array();
-        $this->log('hookDisplayPayment', $this->context->cart);
-
-
         foreach ($currentConfigureListButtons as $btn) {
             //Test
             // SI false > continue
             if ($this->checkButton($btn) != '') {
                 continue;
             }
+
+            if (isset($btn['reductionPayment']) && $btn['reductionPayment'] != 'none') {
+                $cart_rule = new CartRule($this->idPromocode($btn['reductionPayment']));
+                $test = new Cart($this->context->cart->id);
+                $test->addCartRule($cart_rule->id);
+                $totalCart = $test->getOrderTotal();
+                $test->removeCartRule($cart_rule->id);
+                if ($totalCart <= 0) {
+                    $totalCart = $test->getOrderTotal();
+                }
+                $this->resetQuantity($this->idPromocode($btn['reductionPayment']));
+                $this->log('hookDisplayPayment', $this->context->cart);
+            } else {
+                $totalCart = $this->context->cart->getOrderTotal();
+                $this->log('hookDisplayPayment', $this->context->cart);
+            }
+
             if (isset($btn['minAmount'])) {
                 if ($btn['minAmount'] > 0 && $totalCart < $btn['minAmount']) {
                     continue;
@@ -488,6 +502,13 @@ class Paygreen extends PaymentModule
             if (isset($btn['label'])) {
                 $paiement->paiement_btn = $btn['label'];
             }
+
+            if (isset($btn['reductionPayment']) && $this->checkPromoCode($btn['reductionPayment'])) {
+                $paiement->reduction = $this->idPromocode($btn['reductionPayment']);
+            } else {
+                $paiement->reduction = 'none';
+            }
+
             $paiement->return_cancel_url = $this->getShopUrl() . 'modules/paygreen/validation.php';
             $paiement->return_url = $this->getShopUrl() . 'modules/paygreen/validation.php';
             $paiement->return_callback_url = $this->getShopUrl() . 'modules/paygreen/notification.php';
@@ -512,7 +533,6 @@ class Paygreen extends PaymentModule
             );
             $buttons[] = $btn;
         }
-
         $this->context->smarty->assign(array(
             'prestashop' => Tools::substr(_PS_VERSION_, 0, 3),
             'verify_adult'=>Configuration::get(self::_CONFIG_VERIF_ADULT),
@@ -998,6 +1018,10 @@ class Paygreen extends PaymentModule
                 $buttonsList[$key]['error'] = $this->checkButton($btn) == ''
                 ? null : $this->checkButton($btn);
             }
+            $reduction = $btn['reductionPayment'];
+            if ($reduction != "none" && $this->checkQuantityPerUser($this->idPromocode($reduction)) < 1000) {
+                $buttonsList[$key]['warning'] = $this->l("Le code promo a une quantité inferieur a 1000 attention!");
+            }
         }
 
         $infoShop='';
@@ -1023,6 +1047,7 @@ class Paygreen extends PaymentModule
             'urlBaseDeconnect' => Configuration::get('URL_BASE') . "&deconnect=true",
             'request_uri' => $_SERVER['REQUEST_URI'],
             'buttons' => $buttonsList,
+            'promoCode' => $this->getAllPromoCode(),
             'infoShop' => $infoShop,
             'infoAccount' => $infoAccount,
             'imgdir' => $this->getImgDirectory("", true),
@@ -1571,16 +1596,30 @@ class Paygreen extends PaymentModule
             $this->l('Access to dataBase fail');
             return false;
         }
-        $totalCart = $this->context->cart->getOrderTotal();
-        $buttons = array();
-        $this->log('hookPaymentOptions', $this->context->cart);
-
 
         foreach ($currentConfigureListButtons as $btn) {
             //Test
             // SI false > continue
             if ($this->checkButton($btn) != '') {
                 continue;
+            }
+
+            if (isset($btn['reductionPayment']) && $btn['reductionPayment'] != 'none') {
+                $cart_rule = new CartRule($this->idPromocode($btn['reductionPayment']));
+                $test = new Cart($this->context->cart->id);
+                $test->addCartRule($cart_rule->id);
+                $totalCart = $test->getOrderTotal();
+                $test->removeCartRule($cart_rule->id);
+                $this->resetQuantity($this->idPromocode($btn['reductionPayment']));
+                if ($totalCart <= 0) {
+                    $totalCart = $test->getOrderTotal();
+                }
+                $buttons = array();
+                $this->log('hookDisplayPayment', $this->context->cart);
+            } else {
+                $totalCart = $this->context->cart->getOrderTotal();
+                $buttons = array();
+                $this->log('hookDisplayPayment', $this->context->cart);
             }
             if (isset($btn['minAmount'])) {
                 if ($btn['minAmount'] > 0 && $totalCart < $btn['minAmount']) {
@@ -1631,6 +1670,13 @@ class Paygreen extends PaymentModule
             if (isset($btn['label'])) {
                 $paiement->paiement_btn = $btn['label'];
             }
+
+            if (isset($btn['reductionPayment']) && $this->checkPromoCode($btn['reductionPayment'])) {
+                $paiement->reduction = $this->idPromocode($btn['reductionPayment']);
+            } else {
+                $paiement->reduction = 'none';
+            }
+
             $paiement->return_cancel_url = $this->getShopUrl() . 'modules/paygreen/validation.php';
             $paiement->return_url = $this->getShopUrl() . 'modules/paygreen/validation.php';
             $paiement->return_callback_url = $this->getShopUrl() . 'modules/paygreen/notification.php';
@@ -1778,7 +1824,7 @@ class Paygreen extends PaymentModule
     }
 
     public function validateWebPayment($a_data, $isCallback = false)
-    {   
+    {
         $this->log('validateWebPayment', $isCallback ? 'CALLBACK' : 'RETURN');
 
         if (!isset($a_data['data'])) {
@@ -1793,9 +1839,14 @@ class Paygreen extends PaymentModule
         $client = $this->getCaller();
         $client->parseData($a_data['data']);
         $f_amount = $client->amount / 100;
-
         $o_cart = new Cart($client->cart_id);
-
+        if ($client->reduction != 'none') {
+            $cart_rule = new CartRule($client->reduction);
+            // Add cart rule to cart and in order
+            $o_cart->addCartRule($cart_rule->id);
+            $this->resetQuantity($this->idPromocode($client->reduction));
+            $this->log("Add promo code", $cart_rule->id);
+        }
         $o_customer = new Customer((int)$o_cart->id_customer);
 
 
@@ -1835,6 +1886,7 @@ class Paygreen extends PaymentModule
         $a_vars['amount'] = $client->amount;
         $a_vars['currency'] = $client->currency;
         $a_vars['by'] = 'webPayment';
+
         $n_order_id = (int)Order::getOrderByCartId($o_cart->id);
 
         if (!$this->isPaygreenSamePID($client->cart_id, $client->pid)) {
@@ -1855,6 +1907,7 @@ class Paygreen extends PaymentModule
                 false,
                 $o_customer->secure_key
             );
+            $n_order_id = (int)Order::getOrderByCartId((int)$o_cart->id);
             $this->log('validateWebPayment-validateOrder', $n_order_id);
             $isValidation = false;
         } else {
@@ -1864,10 +1917,17 @@ class Paygreen extends PaymentModule
 
         if ($n_order_id) {
             if ($isValidation == true && $isCallback == false) {
-               $o_order =  $this->duplicateOrder($n_order_id);
+                $o_order =  $this->duplicateOrder($n_order_id);
             } else {
                 $o_order = new Order($n_order_id);
             }
+            $this->insertPaygreenTransaction(
+                $n_order_id,
+                $client,
+                $o_cart->id,
+                $o_order->current_state,
+                $client->amount
+            );
 
             $this->log('Id existant : ', $n_order_id);
             $this->log('validateWebPayment-order', $o_order);
@@ -1920,10 +1980,24 @@ class Paygreen extends PaymentModule
         Tools::redirectLink(__PS_BASE_URI__ . 'order-confirmation.php?' . http_build_query($a_query));
     }
 
-    public function duplicateOrder($id_order){
+    public function duplicateOrder($id_order)
+    {
+        $new_ref = Tools::strtoupper(Tools::passwdGen(9, 'NO_NUMERIC'));
         $order = new Order($id_order);
         $duplicatedOrder = $order->duplicateObject();
+        $date = new DateTime();
+        $transaction = array();
+        $transaction['date_add'] = pSQL($date->format('Y-m-d H:i:s'));
+        $transaction['reference'] = $new_ref;
+        try {
+            Db::getInstance()->update('orders', $transaction, 'id_order=' . (int)$duplicatedOrder->id);
+            $duplicatedOrder->date_add = pSQL($date->format('Y-m-d H:i:s'));
+            $duplicatedOrder->reference = $new_ref;
+        } catch (Exception $ex) {
+            return false;
+        }
         $orderDetailList = $order->getOrderDetailList();
+        $this->log("orderdetaillist", $order->getOrderDetailList());
         foreach ($orderDetailList as $detail) {
             $orderDetail = new orderDetail($detail['id_order_detail']);
             $duplicatedOrderDetail = $orderDetail->duplicateObject();
@@ -1934,11 +2008,15 @@ class Paygreen extends PaymentModule
         $orderHistoryList = $order->getHistory(Configuration::get('PS_LANG_DEFAULT'));
         foreach ($orderHistoryList as $history) {
             $orderHistory = new OrderHistory($history['id_order']);
+            var_dump($orderHistory);
             $duplicatedOrderHistory = $orderHistory->duplicateObject();
+            var_dump($duplicatedOrderHistory);
             $duplicatedOrderHistory->id_order = $duplicatedOrder->id;
             $duplicatedOrderHistory->save();
         }
-        return $order;
+        var_dump($duplicatedOrder->getHistory(Configuration::get('PS_LANG_DEFAULT')));
+        $this->log("duplicate order", $duplicatedOrder);
+        return $duplicatedOrder;
     }
 
 
@@ -2008,7 +2086,8 @@ class Paygreen extends PaymentModule
         try {
             $isValidate = Db::getInstance()->getValue(
                 'SELECT COUNT(*) FROM ' . _DB_PREFIX_ .'paygreen_recurring_transaction
-                WHERE pid=' . pSQL($pid));
+                WHERE pid=' . pSQL($pid)
+            );
         } catch (Exception $ex) {
             return false;
         }
@@ -2485,6 +2564,12 @@ class Paygreen extends PaymentModule
             return $error;
         }
         $subOption = $btn['subOption'];
+
+        if (!isset($btn['reductionPayment'])) {
+            return $error;
+        }
+        $reduction = $btn['reductionPayment'];
+
         if ($nbPayment > 1) {
             // Cash payment
             if ($type == self::CASH_PAYMENT) {
@@ -2528,7 +2613,24 @@ class Paygreen extends PaymentModule
         if ($subOption == 1 && $type != self::SUB_PAYMENT) {
             $error .= $this->l('The option is only for subscription payment');
         }
+
+        if ($reduction != 'none') {
+            if (!$this->checkPromoCode($reduction)) {
+                $error .= $this->l('The promo code is available');
+            }
+        }
         return $error;
+    }
+
+    public function checkPromoCode($code)
+    {
+        try {
+            $sql = 'SELECT COUNT(*) FROM '._DB_PREFIX_.'cart_rule
+            WHERE code=\''.pSQL($code) . '\'';
+            return Db::getInstance()->getValue($sql) >= 1;
+        } catch (Exception $ex) {
+            return false;
+        }
     }
 
     public function getVerifyConfig()
@@ -2604,5 +2706,47 @@ class Paygreen extends PaymentModule
             'SELECT pid FROM ' . _DB_PREFIX_ . 'paygreen_transactions
     WHERE id_order=' . ((int)$id_order) . ';'
         );
+    }
+
+    public function idPromocode($code)
+    {
+        return Db::getInstance()->getValue(
+            'SELECT id_cart_rule FROM ' . _DB_PREFIX_ . 'cart_rule 
+        WHERE code =\'' . pSQL($code) .'\''
+        );
+    }
+
+    public function resetQuantity($id_cart_rule)
+    {
+        $update = array();
+        $quantity = $this->checkQuantityPerUser($id_cart_rule);
+
+        $update['quantity'] = (int)$quantity + 1;
+        return Db::getInstance()->update(
+            'cart_rule',
+            $update,
+            'id_cart_rule = ' . (int)$id_cart_rule
+        );
+    }
+
+    public function getAllPromoCode()
+    {
+        $sql = 'SELECT * FROM ' . _DB_PREFIX_ . 'cart_rule
+        WHERE highlight=0';
+        $array = DB::getInstance()->executeS($sql);
+        $n_array = array();
+        $n_array["none"] = $this->l('Aucune réduction');
+        for ($i=0; $i <count($array); $i++) {
+            $n_array[$array[$i]["code"]] =  $array[$i]["description"];
+        }
+        return $n_array;
+    }
+
+    public function checkQuantityPerUser($id_cart_rule)
+    {
+        $sql = 'SELECT quantity_per_user FROM ' . _DB_PREFIX_ . 'cart_rule
+        WHERE id_cart_rule = ' . (int) ($id_cart_rule);
+        var_dump($id_cart_rule);
+        return Db::getInstance()->getValue($sql);
     }
 }

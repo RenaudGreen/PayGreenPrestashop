@@ -45,6 +45,11 @@
                                     <strong>{$btn['error']|escape:'htmlall':'UTF-8'}</strong>
                                 </div>
                             {/if}
+                            {if isset($btn['warning'])}
+                                <div class="alert alert-warning">
+                                    <strong>{$btn['warning']|escape:'htmlall':'UTF-8'}</strong>
+                                </div>
+                            {/if}
                         <!-- Text input-->
                         <div class="form-group">
                             <label class="col-md-4 control-label" for="label">{l s='Label' mod='paygreen'}</label>
@@ -139,27 +144,31 @@
                             </div>
                         </div>
 
-                        <!-- Text input-->
+                       <!-- Text input-->
                         <div class="form-group">
                             <label class="col-md-4 control-label" id="labelPerCentPayment"
-                                   for="perCentPayment">{l s='Per cent for first installments' mod='paygreen'}</label>
+                                   for="perCentPayment">{l s='Pourcentage de la première écheance' mod='paygreen'}</label>
                             <div class="col-md-7">
-                                <input id="perCentPayment" name="perCentPayment" type="number" min="1" max="100"
-                                       class="form-control input-md" 
-                                       {if $btn['perCentPayment'] neq 0}
-                                        value="{$btn['perCentPayment'|escape:'html':'UTF-8']}"
-                                        {/if}>
+                                <div class="input-group">
+                                    <span class="input-group-addon">%</span>
+                                    <input id="perCentPayment" name="perCentPayment" type="number" min="1" max="99"
+                                           class="form-control input-md" 
+                                           {if $btn['perCentPayment'] neq 0}
+                                            value="{$btn['perCentPayment'|escape:'html':'UTF-8']}"
+                                            {/if}>
+                                </div>
                                        
-                                <span class="help-block" id="spanPerCentPayment">{l s='Define per cent for first installment,if empty ignore' mod='paygreen'}</span>
+                                <span class="help-block" id="spanPerCentPayment">{l s='si vide, sera calculé automatiquement' mod='paygreen'}</span>
                             </div>
                         </div>
 
+
                         <!-- CheckBox Basic -->
                         <div class="form-group">
-                            <label class="control-label col-md-4" id ="labelSubOption">{l s='Recreer le panier' mod='paygreen'}</label>
+                            <label class="control-label col-md-4" id ="labelSubOption">{l s='Recréer le panier' mod='paygreen'}</label>
                             <div class="checkbox col-md-7">
                                 <label id ="inputSubOption"><input type="checkBox" name="subOption" id="subOption" value="1" {if $btn['subOption'] == 1} checked {/if}>{l s='Activer l\'option' mod='paygreen'}</label>
-                                <p class="help-block" id ="spanSubOption">{l s='A chaque échance recreer le meme panier' mod='paygreen'}</p>
+                                <p class="help-block" id ="spanSubOption">{l s='A chaque échance recréer la même commande' mod='paygreen'}</p>
                             </div>
                         </div>
                         <!-- Select Basic -->
@@ -177,6 +186,19 @@
                                 </select>
                             </div>
                         </div>
+
+                         <!-- Text input-->
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" id="labelReductionPayment"
+                                   for="ReductionPayment">{l s='Réduction' mod='paygreen'}</label>
+                            <div class="col-md-7">
+
+                                {html_options name=reductionPayment options=$promoCode selected=$btn['reductionPayment']}
+                                       
+                                <span class="help-block" id="spanReductionPayment">{l s='Régle de panier non visible' mod='paygreen'}</span>
+                            </div>
+                        </div>
+
 
                         <!-- Text input-->
                         <div class="form-group">

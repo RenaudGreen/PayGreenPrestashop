@@ -39,18 +39,12 @@ $(document).ready(function() {
 function checkExecutedAt(select) {
     var temp = document.querySelectorAll('[id=executedAt]');
     var paymentDue = document.querySelectorAll('[id=nbPayment]');
-    var help = document.querySelectorAll('[id=spanNbPayment]');
-    var label = document.querySelectorAll('[id=labelNbPayment]');
-    var paymentReport = document.querySelectorAll('[id=labelReport]');
-    var selectReport = document.querySelectorAll('[id=reportPayment]');
-    var paymentDue = document.querySelectorAll('[id=nbPayment]');
-    var percent = document.querySelectorAll('[id=perCentPayment]');
-    var percentLabel = document.querySelectorAll('[id=labelPerCentPayment]');
-    var percentSpan = document.querySelectorAll('[id=spanPerCentPayment]');
-    var subOption = document.querySelectorAll('[id=subOption]');
-    var subOptionLabel = document.querySelectorAll('[id=labelSubOption]');
-    var subOptionSpan = document.querySelectorAll('[id=spanSubOption]');
-    var subOptionInput = document.querySelectorAll('[id=inputSubOption]');
+    var labelPaymentDue = document.querySelectorAll('[id=labelNbPayment]');
+    var labelReport = document.querySelectorAll('[id=labelReport]');
+    var reportPayment = document.querySelectorAll('[id=reportPayment]');
+    var labelPercent = document.querySelectorAll('[id=labelPerCentPayment]');
+    var labelSubOption = document.querySelectorAll('[id=labelSubOption]');
+    var checkbox = document.querySelectorAll('[id=subOption]');
     var n;
     for (var i = 0;i < temp.length; ++i) {
         if (temp[i] == select) {
@@ -58,46 +52,43 @@ function checkExecutedAt(select) {
         }
     }
     if (select.value == 1) {
-        displayAllPayment(paymentDue[n], help[n], label[n], paymentReport[n], selectReport[n], "block");
-        displayPerCentPayment(percent[n], percentLabel[n], percentSpan[n], "none");
-        displaySubOption(subOption[n], subOptionLabel[n], subOptionSpan[n], subOptionInput[n], "block");
+        displayAllPayment(labelPaymentDue[n], labelReport[n], "block");
+        displayPerCentPayment(labelPercent[n], "none");
+        displaySubOption(labelSubOption[n], "block");
     } else if (select.value == 3) {
-        displayPaymentReport(paymentReport[n], selectReport[n], "none");
-        displayPaymentDue(paymentDue[n], help[n], label[n], "block");
-        displayPerCentPayment(percent[n], percentLabel[n], percentSpan[n], "block");
-        displaySubOption(subOption[n], subOptionLabel[n], subOptionSpan[n], subOptionInput[n], "none");
+        displayPaymentReport(labelReport[n], "none");
+        displayPaymentDue(labelPaymentDue[n], "block");
+        displayPerCentPayment(labelPercent[n], "block");
+        displaySubOption(labelSubOption[n], "none");
+        reportPayment[n].value = 0;
+        checkbox[n].checked = false;
     } else {
-        displayAllPayment(paymentDue[n], help[n], label[n], paymentReport[n], selectReport[n], "none");
-        displayPerCentPayment(percent[n], percentLabel[n], percentSpan[n], "none");
-        displaySubOption(subOption[n], subOptionLabel[n], subOptionSpan[n], subOptionInput[n], "none");      
+        displayAllPayment(labelPaymentDue[n], labelReport[n], "none");
+        displayPerCentPayment(labelPercent[n], "none");
+        displaySubOption(labelSubOption[n], "none");
+        paymentDue[n].value = 1;
+        reportPayment[n].value = 0;
+        checkbox.checked = false;
     }
 }
 
-function displaySubOption(subOption, subOptionLabel, subOptionSpan, subOptionInput, mode) {
-    subOption.style.display = mode;
-    subOptionLabel.style.display = mode;
-    subOptionSpan.style.display = mode;
-    subOptionInput.style.display = mode;
+function displaySubOption(labelSubOption, mode) {
+    labelSubOption.parentNode.style.display = mode;
 }
 
-function displayPerCentPayment(percent, percentLabel, percentSpan, mode) {
-    percent.style.display = mode;
-    percentLabel.style.display = mode;
-    percentSpan.style.display = mode;
+function displayPerCentPayment(labelPercent, mode) {
+    labelPercent.parentNode.style.display = mode;
 }
 
-function displayAllPayment(paymentDue, help, label, paymentReport, selectReport, mode) {
-    displayPaymentDue(paymentDue, help, label, mode);
-    displayPaymentReport(paymentReport, selectReport, mode);
+function displayAllPayment(labelPaymentDue, labelReport, mode) {
+    displayPaymentDue(labelPaymentDue, mode);
+    displayPaymentReport(labelReport, mode);
 }
 
-function displayPaymentDue(paymentDue, help, label, mode) {
-    paymentDue.style.display = mode;
-    help.style.display = mode;
-    label.style.display = mode;
+function displayPaymentDue(labelPaymentDue, mode) {
+    labelPaymentDue.parentNode.style.display = mode;
 }
 
-function displayPaymentReport(paymentReport, selectReport, mode) {
-    paymentReport.style.display = mode;
-    selectReport.style.display = mode;
+function displayPaymentReport(labelReport, mode) {
+    labelReport.parentNode.style.display = mode;
 }
