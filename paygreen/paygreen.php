@@ -1551,7 +1551,7 @@ class Paygreen extends PaymentModule
                     $startAtReportPayment = ($reportPayment == 0) ? null : strtotime($reportPayment);
 
                     $paiement->subscribtionPaiement(
-                        PaygreenClient::RECURRING_DAILY,
+                        PaygreenClient::RECURRING_MONTHLY,
                         $nbPaiement,
                         date('d'),
                         $startAtReportPayment
