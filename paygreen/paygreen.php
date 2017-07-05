@@ -280,7 +280,6 @@ class Paygreen extends PaymentModule
             || !$this->registerHook('postUpdateOrderStatus')
             || !$this->registerHook('displayFooter')
             || !$this->registerHook('actionOrderStatusUpdate')
-            || !$this->registerHook('actionOrderHistoryAddAfter')
         ) {
             $this->l('Installation failed: hooks, configs, order states or sql.');
             return false;
@@ -551,11 +550,24 @@ class Paygreen extends PaymentModule
                 return false;
             }
         }
+
+        $laststateupdated = Db::getInstance()->ExecuteS('
+        SELECT `id_order_state`
+        FROM '._DB_PREFIX_.'order_history
+        WHERE id_order='.$params['id_order'].' order by date_add DESC LIMIT 0,1');
+        var_dump($laststateupdated);
+        
+        $o_order = new Order($id_order);
         $sql = 'SELECT type 
                 FROM '._DB_PREFIX_.'paygreen_transactions
-                WHERE id_order=' . (int)$id_order;
+                WHERE id_order=' . (int)$o_order->id;
         $query = Db::getInstance()->getValue($sql);
         $isTokenize = $query == PaygreenClient::MODE_TOKENIZE;
+        var_dump($isTokenize);
+        //die();
+        if (!$isTokenize && $params['newOrderStatus']->template == 'shipped') {
+
+        }
 
         if ($isTokenize && $params['newOrderStatus']->template == 'shipped') {
             $shippedStatus = $this->paygreenShippedTransaction($id_order);
@@ -563,6 +575,21 @@ class Paygreen extends PaymentModule
                 return false;
             }
         }
+    }
+
+    private function changeOrderStatus($id_order)
+    {
+        $Order = new Order((int)$id_order);
+        return $Order->setCurrentState(Configuration::get('PS_OS_CANCELED'));
+    }
+
+    /**
+     * Hook called before status of order change
+     * @param array $params
+     */
+    public function hookactionOrderStatusUpdate($params)
+    {   
+        return false;
     }
 
     /**
@@ -2080,8 +2107,7 @@ class Paygreen extends PaymentModule
     /**
      * Validate Shipped Payment
      */
-    public function paygreenShippedTransaction($id_order)
-    {
+    public function paygreenShippedTransaction($id_order) {
         $pid = $this->getPIDByOrder($id_order);
         if (empty($pid)) {
             return false;
@@ -2091,36 +2117,29 @@ class Paygreen extends PaymentModule
             return false;
         }
 
-        /*$shippedStatus = PaygreenApiClient::shippedOrder(
+        $shippedStatus = PaygreenApiClient::validDeliveryPayment(
             $this->getUniqueIdPP(),
             Configuration::get(self::_CONFIG_PRIVATE_KEY),
             $pid
         );
         $this->errorPaygreenApiClient($refundStatus);
-        */
-        //TEST
-        $shippedStatus = json_decode(json_encode(array(
-            'success' => true,
-            )));
         if (!$shippedStatus) {
             $this->log('PaygreenTRansaction update State ', 'Transacton '. $pid .' NOT shipped');
             return false;
         }
+
         $o_order = new Order($id_order);
         $history = new OrderHistory();
         $history->id_order = (int)($id_order);
         if (isset($shippedStatus->success)) {
-            if (!$shippedStatus->success) {
+            if (!$shippedStatus->success && $shippedStatus->data->result->status = "SUCCESSED") {
                 $this->log('PaygreenTRansaction update State ', 'Transacton '. $pid .' NOT shipped');
-                $refused = $this->l('Le paiement a été refusé.Veuillez réessayer.');
-                $this->context->controller->errors[] = $refused;
-                $history->id_order_state = Configuration::get('PS_OS_CANCELED');
-                $o_order->save();
+                $this->context->controller->errors[] = $this->l('la commande n\'a pas pu être expedié.Veuillez réessayer.');
+                $history->changeIdOrderState(Configuration::get('PS_OS_CANCELED'), (int)($id_order));
                 $history->add();
+                return false;
             } else {
-                $history->id_order_state = Configuration::get('PS_OS_PAYMENT');
-                $o_order->save();
-                //$this->displayInformation($this->l('You have now three default customer groups.'));
+                $history->changeIdOrderState(Configuration::get('PS_OS_PAYMENT'), (int)($id_order));
                 $history->add();
             }
         }

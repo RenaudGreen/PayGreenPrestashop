@@ -115,6 +115,15 @@ class PaygreenApiClient
 
             break;
 
+            case 'delivery':
+            $datas = array(
+                'method' => 'PUT',
+                'url' => self::getUrlProd().'/'.self::getUI().'/payins/transaction/'.$datas['pid'],
+                'http' => $http
+            );
+
+            break;
+
             default:
                 return false;
         }
@@ -156,7 +165,13 @@ class PaygreenApiClient
                     "content-type: application/json",
                     ),
             ));
+            var_dump($function);
+            var_dump($datas);
+            var_dump($datas_request['url']);
+            var_dump($datas_request['method']);
+            var_dump($content);
             $page = curl_exec($ch);
+            var_dump($page);
             curl_close($ch);
 
         } else if(ini_get('allow_url_fopen')) {
@@ -385,5 +400,18 @@ class PaygreenApiClient
     */
     public static function getOAuthTokenEndpoint(){
         return self::getUrlProd().'/auth/access_token';
+    }
+
+    /**
+    * delivery Payment
+    * @return 
+    */
+    public static function validDeliveryPayment($UI, $CP, $pid) {
+        self::IdsAreEmpty($UI, $CP);
+        if(empty($pid)){
+            return false;
+        }
+        var_dump("rentrer ici");
+        return self::requestApi('delivery', array('pid'=>$pid));
     }
 }
