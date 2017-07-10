@@ -415,6 +415,8 @@ class Paygreen extends PaymentModule
             return;
         }
         $this->context->controller->addCSS(($this->_path).'views/css/1.7/payment_options.css', 'all');
+        $this->context->controller->addJS(($this->_path).'client.min.js');
+        $this->context->controller->addJS(($this->_path).'fingerprint.js');
         /*$version = Tools::substr(_PS_VERSION_, 0, 3);
 
         $this->context->controller->addJS($this->_path . 'views/js/' . $version . '/ion.rangeSlider.js');
