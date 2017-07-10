@@ -354,6 +354,26 @@ class Paygreen extends PaymentModule
         return true;
     }
 
+    /**
+     * Insert fingerprint, nbImage and useTime in database
+     * @param $data
+     */
+    public function insertFingerprintDetails($data)
+    {
+        $fingerprint = $data['client'];
+        $useTime = $data['useTime'];
+        $nbImage = $data['nbImage'];
+        $startAt = $data['startAt'];
+        $nbImageQuery = Db::getInstance()->execute("INSERT INTO ps_fingerprintDetail VALUES ($fingerprint, 'useTime', $useTime, NOW(), $startAt)");
+        $useTimeQuery = Db::getInstance()->execute("INSERT INTO ps_fingerprintDetail VALUES ($fingerprint, 'nbImage', $nbImage, NOW(), $startAt)");
+        if (!$useTimeQuery && !$nbImageQuery)
+            $message = array('error' => 'Failed inserted fingerprint ' . $fingerprint . ' with nbImage ' . $nbImage . ' and useTime ' . $useTime . 'into CLIENT table');
+        else
+            $message = array('succes' => 'ok');
+        header('Content-Type: application/json');
+        echo json_encode($message);
+    }
+
     public function getBackLinkPayGreenSecure()
     {
         //_CONFIG_BACKLINK_SECURE
