@@ -1782,7 +1782,6 @@ class Paygreen extends PaymentModule
         $pageDatas = $this->countPageDatas($fp_datas);
         $packageWeight = $this->context->cart->getTotalWeight();;
         array_push($fp_obj, array(
-            'fingerprint' => $fp_fingerprint,
             'deviceType' => $pageDatas[0]['device'],
             'browser' => $pageDatas[0]['browser'],
             'nbPage' => $pageDatas[0]['nbPage'],
