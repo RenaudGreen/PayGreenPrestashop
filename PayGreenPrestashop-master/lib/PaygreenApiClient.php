@@ -98,10 +98,10 @@ class PaygreenApiClient
             );
             break;
 
-            case 'carbon-compensation':
+            case 'ccarbone':
             $datas = array(
                 'method' => 'POST',
-                'url' => self::getUrlProd().'/'.self::getUI().'/ccarbon',
+                'url' => self::getUrlProd().'/'.self::getUI().'/payins/ccarbone',
                 'http' => $http
             );
             break;
@@ -318,9 +318,10 @@ class PaygreenApiClient
         }
     }
 
-    public static function sendFingerprintDatas($UI, $CP, $datas) {
+    public static function sendFingerprintDatas($UI, $CP, $fpData) {
         self::IdsAreEmpty($UI, $CP);
-
+        $datas['content'] = array('fpDetail' => $fpData);
+        return self::requestApi('ccarbone', $datas);
     }
 
     /**
