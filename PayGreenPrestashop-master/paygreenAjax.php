@@ -49,7 +49,9 @@ class API
         if (isset($data['client']) && !empty($data['client']) &&
             isset($data['startAt']) && !empty($data['startAt']) &&
             isset($data['useTime']) && !empty($data['useTime']) &&
-            isset($data['nbImage']) && !empty($data['nbImage'])) {
+            isset($data['nbImage']) && !empty($data['nbImage']) &&
+            isset($data['device']) && !empty($data['device']) &&
+            isset($data['browser']) && !empty($data['browser'])) {
                 return true;
             }
         return false;
@@ -61,9 +63,9 @@ class API
             $paygreen = new Paygreen();
             $paygreen->insertFingerprintDetails($data);
         } else {
-            $data = array('error' => 'required parameters not given', 'data' => $data);
+            $datas = array('Error' => 'required parameters not given');
             header('Content-Type: application/json');
-            echo json_encode($data);
+            echo json_encode($datas);
         }
     }
 }

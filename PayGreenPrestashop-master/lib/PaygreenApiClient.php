@@ -98,6 +98,14 @@ class PaygreenApiClient
             );
             break;
 
+            case 'carbon-compensation':
+            $datas = array(
+                'method' => 'POST',
+                'url' => self::getUrlProd().'/'.self::getUI().'/ccarbon',
+                'http' => $http
+            );
+            break;
+
             case 'are-valid-ids':
             $datas = array(
                 'method' => 'GET',
@@ -310,6 +318,11 @@ class PaygreenApiClient
         }
     }
 
+    public static function sendFingerprintDatas($UI, $CP, $datas) {
+        self::IdsAreEmpty($UI, $CP);
+
+    }
+
     /**
     * Refund an order
     *
@@ -318,7 +331,7 @@ class PaygreenApiClient
     * @param int $pid paygreen id of transaction
     * @param float $amount amount of refund
     * @return string json answer
-    */
+    */    
     public static function refundOrder($UI, $CP, $pid, $amount){
         self::IdsAreEmpty($UI, $CP);
         if(empty($pid)){

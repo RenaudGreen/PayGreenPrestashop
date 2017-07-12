@@ -1,5 +1,12 @@
 var client = new ClientJS();
 var fingerprint = client.getFingerprint();
+document.cookie = 'fingerprint='+fingerprint;
+var clientBrowser = client.getBrowser();
+var clientDevice = 'null';
+if (client.isMobile())
+  clientDevice = 'mobile';
+else
+  clientDevice = 'desktop';
 
 var start;
 var count = 0;
@@ -25,14 +32,17 @@ $(document).ready(function () {
         client: fingerprint,
         startAt: start,
         useTime: (end - start),
-        nbImage: count
+        nbImage: count,
+        device: clientDevice,
+        browser: clientBrowser
       },
       dataType: 'json',
       success: function (result) {
-        console.log('success');
+        console.log({Success: "Ajax sent"});
         console.log(result);
-      }, error: function (result) {
-        console.log('error');
+      },
+      error: function (result) {
+        console.log({Error: "Ajax not sent"});
         console.log(result);
       }
     });

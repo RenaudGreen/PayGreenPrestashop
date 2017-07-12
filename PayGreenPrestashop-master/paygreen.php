@@ -31,6 +31,7 @@ if (!defined('_PS_VERSION_')) {
 
 class Paygreen extends PaymentModule
 {
+    public static $FP = '';
     const _CONFIG_PRIVATE_KEY = '_PG_CONFIG_PRIVATE_KEY';
     const _CONFIG_SHOP_TOKEN = '_PG_CONFIG_SHOP_TOKEN';
     const _CONFIG_SHOP_INPUT_METHOD = '_PG_CONFIG_SHOP_INPUT_METHOD';
@@ -360,16 +361,27 @@ class Paygreen extends PaymentModule
      */
     public function insertFingerprintDetails($data)
     {
-        $fingerprint = $data['client'];
-        $useTime = $data['useTime'];
-        $nbImage = $data['nbImage'];
-        $startAt = $data['startAt'];
-        $nbImageQuery = Db::getInstance()->execute("INSERT INTO ps_fingerprintDetail VALUES ($fingerprint, 'useTime', $useTime, NOW(), $startAt)");
-        $useTimeQuery = Db::getInstance()->execute("INSERT INTO ps_fingerprintDetail VALUES ($fingerprint, 'nbImage', $nbImage, NOW(), $startAt)");
-        if (!$useTimeQuery && !$nbImageQuery)
-            $message = array('error' => 'Failed inserted fingerprint ' . $fingerprint . ' with nbImage ' . $nbImage . ' and useTime ' . $useTime . 'into CLIENT table');
+        $fingerprint = pSQL($data['client']);
+        $useTime = pSQL($data['useTime']);
+        $nbImage = pSQL($data['nbImage']);
+        $startAt = pSQL($data['startAt']);
+        $device = pSQL($data['device']);
+        $browser = pSQL($data['browser']);
+
+        $useTimeArray = array('fingerprint' => $fingerprint, 'key' => 'useTime', 'value' => $useTime, 'createdAt' => date("Y-m-d H:i:s"), 'index' => $startAt);
+        $nbImageArray = array('fingerprint' => $fingerprint, 'key' => 'nbImage', 'value' => $nbImage, 'createdAt' => date("Y-m-d H:i:s"), 'index' => $startAt);
+        $browserArray = array('fingerprint' => $fingerprint, 'key' => 'browser', 'value' => $browser, 'createdAt' => date("Y-m-d H:i:s"), 'index' => $startAt);
+        $deviceArray = array('fingerprint' => $fingerprint, 'key' => 'device', 'value' => $device, 'createdAt' => date("Y-m-d H:i:s"), 'index' => $startAt);
+
+        $nbImageQuery = Db::getInstance()->insert('fingerprintDetail', $nbImageArray);
+        $useTimeQuery = Db::getInstance()->insert('fingerprintDetail', $useTimeArray);
+        $browserQuery = Db::getInstance()->insert('fingerprintDetail', $browserArray);
+        $deviceQuery =  Db::getInstance()->insert('fingerprintDetail', $deviceArray);
+
+        if (!$useTimeQuery || !$nbImageQuery || !$browserQuery || !$deviceQuery)
+            $message = array('Error' => 'Failed query');
         else
-            $message = array('succes' => 'ok');
+            $message = array('Success' => 'Query success');
         header('Content-Type: application/json');
         echo json_encode($message);
     }
@@ -1763,7 +1775,85 @@ class Paygreen extends PaymentModule
 
             $a_externalOption[(int)$btn['position']] = $btnPayment;
         }
+        $fp_obj = array();
+        $fp_carrier = $this->getCarrierNameById($this->context->cart->id_carrier);
+        $fp_fingerprint = pSQL($this->getFingerprint());
+        $fp_datas = $this->getFingerprintDatas($fp_fingerprint);
+        $pageDatas = $this->countPageDatas($fp_datas);
+        $packageWeight = $this->context->cart->getTotalWeight();;
+        array_push($fp_obj, array(
+            'fingerprint' => $fp_fingerprint,
+            'deviceType' => $pageDatas[0]['device'],
+            'browser' => $pageDatas[0]['browser'],
+            'nbPage' => $pageDatas[0]['nbPage'],
+            'useTime' => ($pageDatas[0]['useTime'] / 1000),
+            'nbImage' => $pageDatas[0]['nbImage'],
+            'carrier' => $fp_carrier,
+            'weight' => $package['weight'],
+            'nbPackage' => 1
+            )
+        );
+        $fp_encoded = json_encode($fp_obj);
+        file_put_contents('data.json', $fp_encoded);
+        $this->sendFingerprintDatas($fp_encoded);
         return $a_externalOption;
+    }
+
+    private function countPageDatas($datas) {
+        $obj = array();
+        $foundDevice = false;
+        $foundBrowser = false;
+        $nbPage = 0;
+        $useTime = 0;
+        $nbImage = 0;
+        $browser = '';
+        $device = '';
+        foreach ($datas as $data) {
+            if (strcmp($data['key'], 'useTime') == 0) {
+                ++$nbPage;
+                $useTime += (int)$data['value'];
+            } else if (strcmp($data['key'], 'nbImage') == 0)
+                $nbImage += (int)$data['value'];
+            else if ($foundDevice == false && strcmp($data['key'], 'device') == 0) {
+                $device = $data['value'];
+                $foundDevice = true;
+            } else if ($foundBrowser == false && strcmp($data['key'], 'browser') == 0) {
+                $browser = $data['value'];
+                $foundBrowser = true;
+            }
+        }
+        array_push($obj, array('nbPage' => $nbPage, 'useTime' => $useTime, 'nbImage' => $nbImage, 'browser' => $browser, 'device' => $device));
+        return $obj;
+    }
+
+    private function getFingerprint() {
+        $fingerprint = $_COOKIE['fingerprint'];
+        return $fingerprint;
+    }
+
+    private function getCarrierNameById($id_carrier) {
+        $carrier = new Carrier($id_carrier);
+        return $carrier->name;
+    }
+
+    private function getFingerprintDatas($fingerprint) {
+        $datas = Db::getInstance()->executeS(
+            'SELECT `key`, `value` FROM ' . _DB_PREFIX_ . 'fingerprintDetail
+            WHERE fingerprint= ' . $fingerprint . ';'
+        );
+        $fpDatas = array();
+        foreach ($datas as $data) {
+            array_push($fpDatas, array('key' => $data['key'], 'value' => $data['value']));
+        }
+        return $fpDatas;
+    }
+
+    private function sendFingerprintDatas($datas) {
+        PaygreenApiClient::sendFingerprintDatas(
+            $this->getUniqueIdPP(),
+            Configuration::get(self::_CONFIG_PRIVATE_KEY),
+            $datas
+        );
     }
 
     /**
