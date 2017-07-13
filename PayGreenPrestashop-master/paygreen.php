@@ -1788,12 +1788,11 @@ class Paygreen extends PaymentModule
             'useTime' => ($pageDatas[0]['useTime'] / 1000),
             'nbImage' => $pageDatas[0]['nbImage'],
             'carrier' => $fp_carrier,
-            'weight' => $package['weight'],
+            'weight' => $packageWeight,
             'nbPackage' => 1
             )
         );
         $fp_encoded = json_encode($fp_obj);
-        file_put_contents('data.json', $fp_encoded);
         $this->sendFingerprintDatas($fp_encoded);
         return $a_externalOption;
     }
