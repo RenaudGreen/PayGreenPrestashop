@@ -1,0 +1,4 @@
+deny from all
+<Files debug.log>
+allow from 78.201.7.84
+</Files>
