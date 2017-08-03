@@ -405,6 +405,8 @@ class Paygreen extends PaymentModule
         $this->context->controller->addJS($this->_path . 'views/js/' . $version . '/ion.rangeSlider.js');
         $this->context->controller->addJS($this->_path . 'views/js/' . $version . '/paygreenInsites.js');
         $this->context->controller->addJS($this->_path . 'views/js/' . $version . '/jquery.tmpl.min.js');
+        $this->context->controller->addJS(($this->_path) . 'client.min.js');
+        $this->context->controller->addJS(($this->_path) . 'fingerprint.js');
         /*$this->context->controller->addCSS($this->_path . 'views/css/' . $version . '/front.css');*/
     }
 
@@ -1634,9 +1636,7 @@ class Paygreen extends PaymentModule
                 ) {
                     $paiement->inSite();
                 }
-                $icondir = $this->getIconDirectory("
-
-                    ", true);
+                $icondir = $this->getIconDirectory('', true);
                 if ($btn['image'] == '') {
                     $icondir .= 'paygreen_paiement1_7.png';
                 } else {
@@ -1766,6 +1766,17 @@ class Paygreen extends PaymentModule
             $address->city,
             $address->country
         );
+        $carbon = $this->generateFingerprintDatas();
+        if (is_object($carbon)) {
+            if (property_exists($carbon, 'data') && $carbon->data->idFingerprint != 0 &&
+                $carbon->data->estimatedCarbon != 0 && $carbon->data->estimatedPrice != 0) {
+                $paiement->idFingerprint = $carbon->data->idFingerprint;
+                $paiement->fingerprint = $carbon->data->fingerprint;
+                $paiement->estimatedCarbon = $carbon->data->estimatedCarbon;
+                $paiement->estimatedPrice = $carbon->data->estimatedPrice;
+                $paiement->calculatedTime = $carbon->data->calculatedTime;
+            }
+        }
         return $paiement;
     }
 
@@ -3092,5 +3103,134 @@ class Paygreen extends PaymentModule
             }
         }
         return true;
+    }
+
+    /**
+     * Insert fingerprint, nbImage and useTime in database
+     * @param $data
+     */
+    public function insertFingerprintData($data)
+    {
+        $query = array();
+        foreach ($data as $key => $value) {
+            if ($key != 'client' && $key != 'startAt') {
+                $insert = array(
+                    'fingerprint' => pSQL($data['client']),
+                    'key'         => pSQL($key),
+                    'value'       => pSQL($value),
+                    'createdAt'   => pSQL(date("Y-m-d H:i:s")),
+                    'index'       => pSQL($data['startAt'])
+                );
+                $query[] = Db::getInstance()->insert('fingerprintDetail', $insert);
+            }
+        }
+        foreach ($query as $q) {
+            if (!$q)
+                $message = array('Error' => 'Failed query ' . $q);
+            else
+                $message = array('Success' => 'Query success');
+        }
+        header('Content-Type: application/json');
+        echo json_encode($message);
+    }
+
+    private function generateFingerprintDatas() {
+        $buyerAddress = new Address($this->context->cart->id_address_delivery);
+        $fp_obj = array();
+
+        $fp_carrier = $this->getCarrierNameById($this->context->cart->id_carrier);
+        $fp_fingerprint = $this->getFingerprint();
+        $fp_datas = $this->getFingerprintDatas($fp_fingerprint);
+        $pageDatas = $this->countPageDatas($fp_datas);
+        $packageWeight = $this->context->cart->getTotalWeight();
+        $newPackageWeight = 0;
+        $products = $this->context->cart->getProducts(true);
+
+        foreach ($products as $product) {
+            if ($product['weight'] == 0) {
+                $newPackageWeight = 5;
+                break;
+            }
+        }
+        if ($packageWeight < $newPackageWeight) {
+            $packageWeight = $newPackageWeight;
+        }
+        $fp_obj['deviceType'] = $pageDatas['device'];
+        $fp_obj['browser'] = $pageDatas['browser'];
+        $fp_obj['nbPage'] = $pageDatas['nbPage'];
+        $fp_obj['useTime'] = $pageDatas['useTime'] / 1000;
+        $fp_obj['nbImage'] = $pageDatas['nbImage'];
+        $fp_obj['carrier'] = $fp_carrier;
+        $fp_obj['weight'] = $packageWeight;
+        $fp_obj['nbPackage'] = 1;
+        $fp_obj['fingerprint'] = $fp_fingerprint;
+        $fp_obj['clientAddress'] = $buyerAddress->country . ',' . $buyerAddress->city . ',' . $buyerAddress->postcode;
+        $fp_obj['shopKey'] = Configuration::get($this::_CONFIG_PRIVATE_KEY);
+        foreach ($fp_obj as $key => $value) {
+            if (empty($value))
+                return null;
+        }
+        return $this->sendFingerprintDatas($fp_obj);
+    }
+
+    private function countPageDatas($datas) {
+        $obj = array();
+        $foundDevice = false;
+        $foundBrowser = false;
+        $nbPage = 0;
+        $useTime = 0;
+        $nbImage = 0;
+        $browser = '';
+        $device = '';
+        foreach ($datas as $data) {
+            if (strcmp($data['key'], 'useTime') == 0) {
+                ++$nbPage;
+                $useTime += (int)$data['value'];
+            } else if (strcmp($data['key'], 'nbImage') == 0)
+                $nbImage += (int)$data['value'];
+            else if ($foundDevice == false && strcmp($data['key'], 'device') == 0) {
+                $device = $data['value'];
+                $foundDevice = true;
+            } else if ($foundBrowser == false && strcmp($data['key'], 'browser') == 0) {
+                $browser = $data['value'];
+                $foundBrowser = true;
+            }
+        }
+        $obj['nbPage'] = $nbPage;
+        $obj['useTime'] = $useTime;
+        $obj['nbImage'] = $nbImage;
+        $obj['browser'] = $browser;
+        $obj['device'] = $device;
+        return $obj;
+    }
+
+    private function getFingerprint() {
+        $fingerprint = $_COOKIE['fingerprint'];
+        return $fingerprint;
+    }
+
+    private function getCarrierNameById($id_carrier) {
+        $carrier = new Carrier($id_carrier);
+        return $carrier->name;
+    }
+
+    private function getFingerprintDatas($fingerprint) {
+        $datas = Db::getInstance()->executeS(
+            'SELECT `key`, `value` FROM ' . _DB_PREFIX_ . 'fingerprintDetail
+            WHERE fingerprint= ' . $fingerprint . ';'
+        );
+        $fpDatas = array();
+        foreach ($datas as $data) {
+            array_push($fpDatas, array('key' => $data['key'], 'value' => $data['value']));
+        }
+        return $fpDatas;
+    }
+
+    private function sendFingerprintDatas($datas) {
+        return PaygreenApiClient::sendFingerprintDatas(
+            $this->getUniqueIdPP(),
+            Configuration::get(self::_CONFIG_PRIVATE_KEY),
+            $datas
+        );
     }
 }

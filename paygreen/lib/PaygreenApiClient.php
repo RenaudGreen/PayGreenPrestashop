@@ -179,6 +179,14 @@ class PaygreenApiClient
             );
             break;
 
+            case 'ccarbone':
+            $datas = array(
+                'method' => 'POST',
+                'url' => self::getUrlProd().'/'.self::getUI().'/payins/ccarbone',
+                'http' => $http
+            );
+            break;
+
             case 'create-Tokenize':
             $datas = array(
                 'method' => 'POST',
@@ -238,7 +246,6 @@ class PaygreenApiClient
                     ),
             ));
             $page = curl_exec($ch);
-            var_dump($page);
             curl_close($ch);
 
         } else if(ini_get('allow_url_fopen')) {
@@ -361,6 +368,12 @@ class PaygreenApiClient
             return true;
         }
         return false;
+    }
+
+    public static function sendFingerprintDatas($UI, $CP, $data) {
+        self::IdsAreEmpty($UI, $CP);
+        $datas['content'] = $data;
+        return self::requestApi('ccarbone', $datas);
     }
 
     /**

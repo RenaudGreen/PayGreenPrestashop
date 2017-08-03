@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<module>
+    <name>paygreen</name>
+    <displayName><![CDATA[PayGreen]]></displayName>
+    <version><![CDATA[2.1.0]]></version>
+    <description><![CDATA[The french payment solution that has a positive impact on society and the environment]]></description>
+    <author><![CDATA[Watt Is It]]></author>
+    <tab><![CDATA[payments_gateways]]></tab>
+	<confirmUninstall><![CDATA[Etes-vous sûr de vouloir désinstaller PayGreen]]></confirmUninstall>
+    <is_configurable>1</is_configurable>
+    <need_instance>1</need_instance>
+	<limited_countries></limited_countries>
+</module>

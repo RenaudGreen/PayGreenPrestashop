@@ -61,7 +61,7 @@ class API
     {
         if (isset($data) && !empty($data) && $this->checkDatas($data) == true) {
             $paygreen = new Paygreen();
-            $paygreen->insertFingerprintDetails($data);
+            $paygreen->insertFingerprintData($data);
         } else {
             $datas = array('Error' => 'required parameters not given');
             header('Content-Type: application/json');
