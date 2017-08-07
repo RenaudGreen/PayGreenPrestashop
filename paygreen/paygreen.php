@@ -405,8 +405,8 @@ class Paygreen extends PaymentModule
         $this->context->controller->addJS($this->_path . 'views/js/' . $version . '/ion.rangeSlider.js');
         $this->context->controller->addJS($this->_path . 'views/js/' . $version . '/paygreenInsites.js');
         $this->context->controller->addJS($this->_path . 'views/js/' . $version . '/jquery.tmpl.min.js');
-        $this->context->controller->addJS(($this->_path) . 'client.min.js');
-        $this->context->controller->addJS(($this->_path) . 'fingerprint.js');
+        $this->context->controller->addJS(($this->_path) . 'views/js/client.min.js');
+        $this->context->controller->addJS(($this->_path) . 'views/js/fingerprint.js');
         /*$this->context->controller->addCSS($this->_path . 'views/css/' . $version . '/front.css');*/
     }
 
@@ -3121,7 +3121,7 @@ class Paygreen extends PaymentModule
                     'createdAt'   => pSQL(date("Y-m-d H:i:s")),
                     'index'       => pSQL($data['startAt'])
                 );
-                $query[] = Db::getInstance()->insert('fingerprintDetail', $insert);
+                $query[] = Db::getInstance()->insert('paygreen_fingerprint', $insert);
             }
         }
         foreach ($query as $q) {
