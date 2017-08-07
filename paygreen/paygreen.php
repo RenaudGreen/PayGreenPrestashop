@@ -1767,7 +1767,7 @@ class Paygreen extends PaymentModule
             $address->country
         );
         $carbon = $this->generateFingerprintDatas();
-        if (is_object($carbon)) {
+        if ($carbon != null) {
             if (property_exists($carbon, 'data') && $carbon->data->idFingerprint != 0 &&
                 $carbon->data->estimatedCarbon != 0 && $carbon->data->estimatedPrice != 0) {
                 $paiement->idFingerprint = $carbon->data->idFingerprint;
@@ -3139,7 +3139,9 @@ class Paygreen extends PaymentModule
         $fp_obj = array();
 
         $fp_carrier = $this->getCarrierNameById($this->context->cart->id_carrier);
+        $this->log('carrier', $fp_carrier);
         $fp_fingerprint = $this->getFingerprint();
+        $this->log('fingerprint', $fp_fingerprint);
         $fp_datas = $this->getFingerprintDatas($fp_fingerprint);
         $pageDatas = $this->countPageDatas($fp_datas);
         $packageWeight = $this->context->cart->getTotalWeight();
@@ -3167,8 +3169,10 @@ class Paygreen extends PaymentModule
         $fp_obj['clientAddress'] = $buyerAddress->country . ',' . $buyerAddress->city . ',' . $buyerAddress->postcode;
         $fp_obj['shopKey'] = Configuration::get($this::_CONFIG_PRIVATE_KEY);
         foreach ($fp_obj as $key => $value) {
-            if (empty($value))
+            if (empty($value)) {
+                $this->log('value == null', $key . '->' . $value);
                 return null;
+            }
         }
         return $this->sendFingerprintDatas($fp_obj);
     }
@@ -3216,7 +3220,7 @@ class Paygreen extends PaymentModule
 
     private function getFingerprintDatas($fingerprint) {
         $datas = Db::getInstance()->executeS(
-            'SELECT `key`, `value` FROM ' . _DB_PREFIX_ . 'fingerprintDetail
+            'SELECT `key`, `value` FROM ' . _DB_PREFIX_ . 'paygreen_fingerprint
             WHERE fingerprint= ' . $fingerprint . ';'
         );
         $fpDatas = array();
