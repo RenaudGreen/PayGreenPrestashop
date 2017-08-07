@@ -406,7 +406,7 @@ class Paygreen extends PaymentModule
         $this->context->controller->addJS($this->_path . 'views/js/' . $version . '/paygreenInsites.js');
         $this->context->controller->addJS($this->_path . 'views/js/' . $version . '/jquery.tmpl.min.js');
         $this->context->controller->addJS(($this->_path) . 'views/js/client.min.js');
-        $this->context->controller->addJS(($this->_path) . 'views/js/fingerprint.js');
+        $this->context->controller->addJS(($this->_path) . 'views/js/greenprint.js');
         /*$this->context->controller->addCSS($this->_path . 'views/css/' . $version . '/front.css');*/
     }
 
