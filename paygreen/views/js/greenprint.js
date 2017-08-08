@@ -4,8 +4,8 @@ $(document).ready(function () {
   var protocol = pathArray[0];
   var host = pathArray[2];
   var baseUrlClient = protocol + '//' + host;
-  console.log('base url : ' + baseUrlClient);
   $.getScript(baseUrlClient + '/modules/paygreen/views/js/client.min.js', function () {
+  console.log('base url : ' + baseUrlClient);
     var client = new ClientJS();
     var fingerprint = client.getFingerprint();
     document.cookie = 'fingerprint=' + fingerprint;

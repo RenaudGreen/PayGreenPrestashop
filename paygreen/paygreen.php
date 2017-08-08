@@ -1767,6 +1767,7 @@ class Paygreen extends PaymentModule
             $address->country
         );
         $carbon = $this->generateFingerprintDatas();
+        // var_dump($carbon);
         if ($carbon != null) {
             if (property_exists($carbon, 'data') && $carbon->data->idFingerprint != 0 &&
                 $carbon->data->estimatedCarbon != 0 && $carbon->data->estimatedPrice != 0) {
@@ -3166,8 +3167,9 @@ class Paygreen extends PaymentModule
         $fp_obj['weight'] = $packageWeight;
         $fp_obj['nbPackage'] = 1;
         $fp_obj['fingerprint'] = $fp_fingerprint;
-        $fp_obj['clientAddress'] = $buyerAddress->country . ',' . $buyerAddress->city . ',' . $buyerAddress->postcode;
+        $fp_obj['clientAddress'] = $buyerAddress->address1.','.$buyerAddress->postcode.','.$buyerAddress->city.','.$buyerAddress->country;
         $fp_obj['shopKey'] = Configuration::get($this::_CONFIG_PRIVATE_KEY);
+        // var_dump($fp_obj);
         foreach ($fp_obj as $key => $value) {
             if (empty($value)) {
                 $this->log('value == null', $key . '->' . $value);
