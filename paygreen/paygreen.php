@@ -2107,7 +2107,7 @@ class Paygreen extends PaymentModule
                 $f_amount,
                 $this->displayName,
                 $this->l('Transaction Paygreen') . ': ' . (int)$o_cart->id . ' (' . $client->paiement_btn . ')' .
-                ((int)($client->testMode) == 1 ? '|/!\ ' . $this->l('WARNING transaction in TEST mode') . '/!\ ' : ''),
+                ((int)($client->testMode) == 1 ? '|/!\ ' . $this->l('WARNING transaction in TEST mode') . '/!\ ' : '') . ' | { ' . $client->pid . ' }',
                 $a_vars,
                 null,
                 false,
