@@ -3,6 +3,7 @@
 global $_MODULE;
 $_MODULE = array();
 $_MODULE['<{paygreen}prestashop>paygreen_0ecd243cb24009e03c2340b85b2fb89f'] = 'PayGreen';
+$_MODULE['<{paygreen}prestashop>paygreen_8a96baa9d7fea9e93e830640c5d8f541'] = 'La première solution de paiement qui a un impact positif sur la société et l\'environnement';
 $_MODULE['<{paygreen}prestashop>paygreen_876f23178c29dc2552c0b48bf23cd9bd'] = 'Etes-vous sûr de vouloir désinstaller PayGreen';
 $_MODULE['<{paygreen}prestashop>paygreen_92d4773a9f32fc3333cb8238471cf763'] = 'Vous devez activé l\'extension cURL sur votre serveur pour installer ce module';
 $_MODULE['<{paygreen}prestashop>paygreen_cdbe2f170711683cb6624cf9c509cc99'] = 'Ce module n\'est pas disponible dans votre pays';
@@ -225,6 +226,10 @@ $_MODULE['<{paygreen}prestashop>connectapi_99dea78007133396a7b8ed70578ac6ae'] = 
 $_MODULE['<{paygreen}prestashop>configurebuttons_99dabf6c34457254239b71b757495e7e'] = 'Configuration des boutons de paiement';
 $_MODULE['<{paygreen}prestashop>configurebuttons_be53a0541a6d36f6ecb879fa2c584b08'] = 'Image';
 $_MODULE['<{paygreen}prestashop>configurebuttons_1788227e459e9d6e30ad6f71b1cab9c1'] = 'Titre + Image';
+$_MODULE['<{paygreen}prestashop>configurebuttons_0eae2e6715e8e97a992b5a793e50207d'] = 'Type d\'intégration';
+$_MODULE['<{paygreen}prestashop>configurebuttons_102ab9ac77ad67766bebbf4dbcfc7863'] = 'Paiement externe';
+$_MODULE['<{paygreen}prestashop>configurebuttons_ca3facc79d52e3087fc65a67b3050198'] = 'Paiement en Iframe';
+$_MODULE['<{paygreen}prestashop>configurebuttons_67fd50a1096df5ec82e99ac6c1a8dd3c'] = 'Si le protocole SSL est déactivé alors les boutons en IFrame ne s\'afficherons pas';
 $_MODULE['<{paygreen}prestashop>configurebuttons_b9b98db9ed590b1be35da846c496b717'] = 'Pas de report';
 $_MODULE['<{paygreen}prestashop>error_a25c753ee3e4be15ec0daa5a40deb7b8'] = 'Une erreur est survenu';
 $_MODULE['<{paygreen}prestashop>payment_572b221ec653032250100cefd10a31eb'] = 'Payer par transaction banquaire';

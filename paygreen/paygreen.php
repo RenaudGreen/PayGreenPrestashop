@@ -390,6 +390,7 @@ class Paygreen extends PaymentModule
     }
 
 
+
     /**
      * Add the CSS & JavaScript files you want to be added on the FO.
      * config_verif_adult disabled
@@ -425,6 +426,7 @@ class Paygreen extends PaymentModule
         if (!$this->isVisible()) {
             return false;
         }
+
         $cust = new Customer((int)$this->context->cookie->id_customer);
         $currency = new Currency((int)$this->context->cart->id_currency);
 
@@ -434,8 +436,9 @@ class Paygreen extends PaymentModule
             $this->l('Access to dataBase fail');
             return false;
         }
+        $totalCart = $this->context->cart->getOrderTotal();
         $buttons = array();
-        $this->log('hookDisplayPayment cart ', $this->context->cart);
+        $this->log('hookDisplayPayment', $this->context->cart);
 
 
         foreach ($currentConfigureListButtons as $btn) {
@@ -444,7 +447,72 @@ class Paygreen extends PaymentModule
             if ($this->checkButton($btn) != '') {
                 continue;
             }
-            $paiement = $this->generatePayment($btn, $cust, $currency);
+            if (isset($btn['minAmount'])) {
+                if ($btn['minAmount'] > 0 && $totalCart < $btn['minAmount']) {
+                    continue;
+                }
+            }
+
+            if (isset($btn['maxAmount'])) {
+                if ($btn['maxAmount'] > 0 && $totalCart > $btn['maxAmount']) {
+                    continue;
+                }
+            }
+            if (isset($btn['nbPayment']) && isset($btn['executedAt'])) {
+                if (!isset($btn['reportPayment'])) {
+                    $btn['reportPayment'] = 0;
+                }
+                $paiement = $this->generatePaiementData(
+                    $this->context->cart->id,
+                    $btn['nbPayment'],
+                    $totalCart,
+                    $currency->iso_code,
+                    $btn['executedAt'],
+                    $btn['reportPayment']
+                );
+            }
+
+            switch ($btn['executedAt']) {
+                // At the delivery
+                case -1:
+                    $paiement->cardPrint();
+                    break;
+            }
+
+            if (!isset($paiement)) {
+                return false;
+            }
+
+            $paiement->customer(
+                $cust->id,
+                $cust->lastname,
+                $cust->firstname,
+                $cust->email
+            );
+
+            $paiement->cart_id = $this->context->cart->id;
+
+            if (isset($btn['label'])) {
+                $paiement->paiement_btn = $btn['label'];
+            }
+            $paiement->return_cancel_url = $this->getShopUrl() . 'modules/paygreen/validation.php';
+            $paiement->return_url = $this->getShopUrl() . 'modules/paygreen/validation.php';
+            $paiement->return_callback_url = $this->getShopUrl() . 'modules/paygreen/notification.php';
+
+
+            $address = new Address($this->context->cart->id_address_delivery);
+            $paiement->shippingTo(
+                $address->lastname,
+                $address->firstname,
+                $address->address1,
+                $address->address2,
+                $address->company,
+                $address->postcode,
+                $address->city,
+                $address->country
+            );
+
+
             $btn['debug'] = $paiement;
             $btn['paiement'] = array(
                 'action' => $paiement->getActionForm(),
@@ -484,7 +552,7 @@ class Paygreen extends PaymentModule
         if (!isset($params['newOrderStatus'])) {
             return false;
         }
-
+    
         if ($params['newOrderStatus']->template == 'refund') {
             $refundStatus = $this->paygreenRefundTransaction($id_order);
             if (!$refundStatus) {
@@ -955,6 +1023,7 @@ class Paygreen extends PaymentModule
 
         $infoShop='';
         $infoAccount='';
+
         if ($this->isConnected() && $this->paygreenValidIds()) {
             $infoShop = $this->infoShop();
             if ($infoShop != false) {
@@ -992,7 +1061,7 @@ class Paygreen extends PaymentModule
             $this->local_path . 'views/templates/admin/' . $version . '/connectApi.tpl'
         );
         $output .= $this->renderForm();
-        $this->context->controller->addJS($this->local_path . 'views/js/' . $version . '/back.js');
+       /* $this->context->controller->addJS($this->local_path . 'views/js/' . $version . '/back.js');*/
         $this->context->controller->addCSS($this->local_path . 'views/css/' . $version . '/back.css');
 
         $output .= $this->context->smarty->fetch(
@@ -1464,7 +1533,7 @@ class Paygreen extends PaymentModule
         $typePayment,
         $reportPayment,
         $percent = null
-    ) {;
+    ) {
         $paiement = $this->getCaller();
         $paiement->transaction(
             $transactionId,
@@ -1524,9 +1593,10 @@ class Paygreen extends PaymentModule
             $this->l('Access to dataBase fail');
             return false;
         }
+
+        $totalCart = $this->context->cart->getOrderTotal();
         $buttons = array();
         $this->log('hookPaymentOptions', $this->context->cart);
-
 
         foreach ($currentConfigureListButtons as $btn) {
             //Test
@@ -1535,10 +1605,73 @@ class Paygreen extends PaymentModule
                 continue;
             }
             if (isset($btn['integration']) && $btn['integration'] == self::BUTTON_EXTERNAL) {
-                $paiement = $this->generatePayment($btn, $cust, $currency);
-                if ($paiement == false) {
-                    continue;
+
+                if (isset($btn['minAmount'])) {
+                    if ($btn['minAmount'] > 0 && $totalCart < $btn['minAmount']) {
+                        continue;
+                    }
                 }
+
+                if (isset($btn['maxAmount'])) {
+                    if ($btn['maxAmount'] > 0 && $totalCart > $btn['maxAmount']) {
+                        continue;
+                    }
+                }
+                if (isset($btn['nbPayment']) && isset($btn['executedAt'])) {
+                    if (!isset($btn['reportPayment'])) {
+                        $btn['reportPayment'] = 0;
+                    }
+                    $paiement = $this->generatePaiementData(
+                        $this->context->cart->id,
+                        $btn['nbPayment'],
+                        $totalCart,
+                        $currency->iso_code,
+                        $btn['executedAt'],
+                        $btn['reportPayment']
+                    );
+                }
+
+                switch ($btn['executedAt']) {
+                    // At the delivery
+                    case -1:
+                        $paiement->cardPrint();
+                        break;
+                }
+
+                if (!isset($paiement)) {
+                    return false;
+                }
+
+                $paiement->customer(
+                    $cust->id,
+                    $cust->lastname,
+                    $cust->firstname,
+                    $cust->email
+                );
+
+                $paiement->cart_id = $this->context->cart->id;
+
+                if (isset($btn['label'])) {
+                    $paiement->paiement_btn = $btn['label'];
+                }
+                $paiement->return_cancel_url = $this->getShopUrl() . 'modules/paygreen/validation.php';
+                $paiement->return_url = $this->getShopUrl() . 'modules/paygreen/validation.php';
+                $paiement->return_callback_url = $this->getShopUrl() . 'modules/paygreen/notification.php';
+
+
+                $address = new Address($this->context->cart->id_address_delivery);
+                $paiement->shippingTo(
+                    $address->lastname,
+                    $address->firstname,
+                    $address->address1,
+                    $address->address2,
+                    $address->company,
+                    $address->postcode,
+                    $address->city,
+                    $address->country
+                );
+                $paiement->parseData($paiement->generateData());
+
                 $btn['debug'] = $paiement;
                 $btn['paiement'] = array(
                     'action' => $paiement->getActionForm(),
@@ -1555,6 +1688,7 @@ class Paygreen extends PaymentModule
                     $icondir .= $btn['image'];
                 }
                 $logos = Media::getMediaPath($icondir);
+
                 $taille = getimagesize($logos);
                 $largeur = $taille[0] / ($taille[1] / 40);
                 $this->context->smarty->assign(array(
@@ -1609,6 +1743,7 @@ class Paygreen extends PaymentModule
 
         $cust = new Customer((int)$this->context->cookie->id_customer);
         $currency = new Currency((int)$this->context->cart->id_currency);
+
         $totalCart = $this->context->cart->getOrderTotal();
         try {
             $currentConfigureListButtons = $this->getButtonsList();
@@ -1623,6 +1758,7 @@ class Paygreen extends PaymentModule
                 continue;
             }
             if (isset($btn['integration']) && $btn['integration'] == self::BUTTON_IFRAME) {
+
                 $paiement = $this->generatePayment($btn, $cust, $currency);
                 if ($paiement == false) {
                     continue;
@@ -1633,6 +1769,34 @@ class Paygreen extends PaymentModule
                     $this->getPaygreenConfig('type') == 'LC'
                 ) {
                     $paiement->inSite();
+                }
+                if (isset($btn['minAmount'])) {
+                    if ($btn['minAmount'] > 0 && $totalCart < $btn['minAmount']) {
+                        continue;
+                    }
+                }
+
+                if (isset($btn['maxAmount'])) {
+                    if ($btn['maxAmount'] > 0 && $totalCart > $btn['maxAmount']) {
+                        continue;
+                    }
+                }
+                if (isset($btn['nbPayment']) && isset($btn['executedAt'])) {
+                    if (!isset($btn['reportPayment'])) {
+                        $btn['reportPayment'] = 0;
+                    }
+                    $paiement = $this->roundingWeb($btn);
+                }
+
+                switch ($btn['executedAt']) {
+                    // At the delivery
+                    case -1:
+                        $paiement->cardPrint();
+                        break;
+                }
+
+                if (!isset($paiement)) {
+                    return false;
                 }
                 $icondir = $this->getIconDirectory("
 
@@ -1652,6 +1816,7 @@ class Paygreen extends PaymentModule
                 } elseif ($btn['displayType'] == self::DISPLAYB_LABEL) {
                     $iFrame->setCallToActionText($this->l($btn['label']));
                 }
+/*
                 $result = $this->createPayment($btn['executedAt'], $paiement);
                 if ($result != null) {
                     var_dump($result);
@@ -1662,6 +1827,16 @@ class Paygreen extends PaymentModule
                         $this->context->link->getModuleLink($this->name, 'validationInsite', array(), true)
                     )
                     ->setInputs(array(
+*/
+                $result = $this->createCash($paiement);
+                if ($result != null) {
+                    $iFrame->setAdditionalInformation(
+                        $this->generateIframeForm($btn['id'], $totalCart, $result)
+                    );
+                    $iFrame->setAction(
+                        $this->context->link->getModuleLink($this->name, 'validationInsite', array(), true)
+                    );
+                    $iFrame->setInputs(array(
                         'pid' => array(
                                         'name' =>'pid',
                                         'type' =>'hidden',
@@ -1685,48 +1860,29 @@ class Paygreen extends PaymentModule
         return $a_iFrameOption;
     }
 
-    private function generatePayment($btn, $cust, $currency)
+    public function roundingWeb($btn)
     {
-        if (isset($btn['reductionPayment']) && $btn['reductionPayment'] != 'none') {
-            $cart_rule = new CartRule($this->idPromocode($btn['reductionPayment']));
-            $test = new Cart($this->context->cart->id);
-            $test->addCartRule($cart_rule->id);
-            $totalCart = $test->getOrderTotal();
-            $test->removeCartRule($cart_rule->id);
-            $this->resetQuantity($this->idPromocode($btn['reductionPayment']));
-            if ($totalCart <= 0) {
-                $totalCart = $test->getOrderTotal();
-            }
-            $this->log('getExternalPaymentOption', $this->context->cart);
-        } else {
-            $totalCart = $this->context->cart->getOrderTotal();
-            $buttons = array();
-            $this->log('getExternalPaymentOption', $this->context->cart);
+        if ($this->verifyConfiguration() != '') {
+            return false;
         }
-        if (isset($btn['minAmount'])) {
-            if ($btn['minAmount'] > 0 && $totalCart < $btn['minAmount']) {
-                return false;
-            }
+        if ($this->getPaygreenConfig('type') != 'LC' && !$this->paygreenValidIds()) {
+            return false;
         }
-        if (isset($btn['maxAmount'])) {
-            if ($btn['maxAmount'] > 0 && $totalCart > $btn['maxAmount']) {
-                return false;
-            }
-        }
-        if (isset($btn['nbPayment']) && isset($btn['executedAt'])) {
-            if (!isset($btn['reportPayment'])) {
-                $btn['reportPayment'] = 0;
-            }
-            $paiement = $this->generatePaiementData(
-                $this->context->cart->id,
-                $btn['nbPayment'],
-                $totalCart,
-                $currency->iso_code,
-                $btn['executedAt'],
-                $btn['reportPayment'],
-                $btn['perCentPayment']
-            );
-        }
+
+        $cust = new Customer((int)$this->context->cookie->id_customer);
+        $currency = new Currency((int)$this->context->cart->id_currency);
+
+        $totalCart = $this->context->cart->getOrderTotal();
+
+        $paiement = $this->generatePaiementData(
+            $this->context->cart->id,
+            $btn['nbPayment'],
+            $totalCart,
+            $currency->iso_code,
+            $btn['executedAt'],
+            $btn['reportPayment']
+        );
+
         switch ($btn['executedAt']) {
             // At the delivery
             case -1:
@@ -1736,12 +1892,14 @@ class Paygreen extends PaymentModule
         if (!isset($paiement)) {
             return false;
         }
+
         $paiement->customer(
             $cust->id,
             $cust->lastname,
             $cust->firstname,
             $cust->email
         );
+
         $paiement->cart_id = $this->context->cart->id;
         if (isset($btn['label'])) {
             $paiement->paiement_btn = $btn['label'];
@@ -1751,6 +1909,7 @@ class Paygreen extends PaymentModule
         } else {
             $paiement->reduction = 'none';
         }
+
         $paiement->return_cancel_url = $this->getShopUrl() . 'modules/paygreen/validation.php';
         $paiement->return_url = $this->getShopUrl() . 'modules/paygreen/validation.php';
         $paiement->return_callback_url = $this->getShopUrl() . 'modules/paygreen/notification.php';
@@ -1766,6 +1925,9 @@ class Paygreen extends PaymentModule
             $address->city,
             $address->country
         );
+        if (!empty($_SERVER['HTTPS']) || !$this->getPaygreenConfig('type') == 'P') {
+            $paiement->inSite();
+        }
         return $paiement;
     }
 
@@ -1928,8 +2090,6 @@ class Paygreen extends PaymentModule
         return $result->{'success'} == false ? null : $result;
     }
 
-
-
     /**
      * display Form.
      */
@@ -1961,9 +2121,42 @@ class Paygreen extends PaymentModule
             'amount' => $totalCart,
             'url' => $result->{'data'}->{'url'} . "?ref=prestashop&display=insite",
         ));
+
         return $this->context->smarty->fetch(
             'module:paygreen/views/templates/front/1.7/iframe.tpl'
         );
+    }
+
+    private function createCash($paiement)
+    {
+        $a_paiement = $paiement->toArray();
+        $data = array (
+            "content" => array(
+                "orderId" => $a_paiement['transaction_id'],
+                "amount" => $a_paiement['amount'],
+                "currency" => $a_paiement['currency'],
+                "returned_url" => urldecode($a_paiement['return_url']) ,
+                "notified_url" => urldecode($a_paiement['return_callback_url']) ,
+                "metadata" => array(
+                    "cart_id" => $a_paiement['cart_id'],
+                    "paiement_btn" => $a_paiement['paiement_btn'],
+                    "display" => "insite",
+                ),
+                "buyer" => array(
+                    "id" => $a_paiement['customer_id'],
+                    "lastName" => $a_paiement['customer_last_name'] ,
+                    "firstName" => $a_paiement['customer_first_name'] ,
+                    "email" => $a_paiement['customer_email'],
+                ),
+            )
+        );
+        $pac = new PaygreenApiClient();
+        $pac->IdsAreEmpty(
+            $this->getUniqueIdPP(),
+            Configuration::get($this::_CONFIG_PRIVATE_KEY)
+        );
+        $result = $pac->requestApi('create-cash', $data);
+        return $result->{'success'} == false ? null : $result;
     }
 
     /**
@@ -2005,6 +2198,7 @@ class Paygreen extends PaymentModule
 
         return false;
     }
+
     public function validateWebPayment($a_data, $isCallback = false)
     {
         $this->log('validateWebPayment', $isCallback ? 'CALLBACK' : 'RETURN');
@@ -2044,6 +2238,7 @@ class Paygreen extends PaymentModule
             $this->resetQuantity($this->idPromocode($client->reduction));
             $this->log("Add promo code", $cart_rule->id);
         }
+
         if ($client->result['status'] == PaygreenClient::STATUS_REFUSED) {
             $status = Configuration::get('PS_OS_ERROR');
         } elseif ($client->result['status'] == PaygreenClient::STATUS_CANCELLING) {
@@ -2249,6 +2444,7 @@ class Paygreen extends PaymentModule
 
             $this->log('Id existant : ', $n_order_id);
             $this->log('validateWebPayment-order', $o_order);
+
             if ($o_order->current_state ==  Configuration::get('PS_OS_ERROR') &&
                     ($status == Configuration::get('PS_OS_PAYMENT')
                         || $status == Configuration::get(self::_CONFIG_ORDER_AUTH)
@@ -2856,6 +3052,7 @@ class Paygreen extends PaymentModule
         }
         $report = $btn['reportPayment'];
 
+
         if (!isset($btn['perCentPayment'])) {
             return $error;
         }
@@ -2933,6 +3130,7 @@ class Paygreen extends PaymentModule
             return false;
         }
     }
+
     public function getVerifyConfig()
     {
         $config = $this->getConfig();

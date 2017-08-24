@@ -108,6 +108,7 @@
                     <span class="help-block" id="spanNbPayment">{l s='Defines the payment duration in months' mod='paygreen'}</span>
                 </div>
 
+<<<<<<< HEAD
                 <!-- Text input-->
                 <div class="form-group">
                     <label class="col-md-4 control-label" id="labelPerCentPayment"
@@ -134,6 +135,8 @@
                          <p class="help-block" id ="spanSubOption">{l s='At each due payment, the previous order is recreated automatically' mod='paygreen'}</p>
                      </div>
                 </div>
+=======
+>>>>>>> iframe
 
                 <label id ="labelReport">{l s='Payment deferment' mod='paygreen'}</label>
                 <div class="margin-form">
@@ -148,6 +151,7 @@
                 </div>
 
                 <!-- Text input-->
+<<<<<<< HEAD
                 <div class="form-group">
                     <label class="col-md-4 control-label" id="labelReductionPayment"
                         for="ReductionPayment">{l s='Discount' mod='paygreen'}</label>
@@ -160,6 +164,8 @@
                 </div>
 
                 <!-- Text input-->
+=======
+>>>>>>> iframe
 
                 <label>{l s='Amount cart' mod='paygreen'}</label>
                 <div class="margin-form">

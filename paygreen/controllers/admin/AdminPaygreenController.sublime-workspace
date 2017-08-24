@@ -4,6 +4,141 @@
 		"selected_items":
 		[
 			[
+<<<<<<< HEAD
+=======
+				"euro",
+				"euroCeil"
+			],
+			[
+				"gene",
+				"generateIframeForm"
+			],
+			[
+				"max",
+				"maxDonation"
+			],
+			[
+				"ma",
+				"maxDonation"
+			],
+			[
+				"tot",
+				"totalCart"
+			],
+			[
+				"selecto",
+				"selectorById"
+			],
+			[
+				"selec",
+				"selectorById"
+			],
+			[
+				"sele",
+				"selectorById"
+			],
+			[
+				"for",
+				"foreach\tforeach …"
+			],
+			[
+				"array",
+				"array_merge"
+			],
+			[
+				"geti",
+				"getIframePaymentOption"
+			],
+			[
+				"var",
+				"var_dump"
+			],
+			[
+				"display",
+				"displayType"
+			],
+			[
+				"post",
+				"postProcess"
+			],
+			[
+				"iss",
+				"isset"
+			],
+			[
+				"imag",
+				"imageUrl"
+			],
+			[
+				"asso",
+				"assosciationId"
+			],
+			[
+				"chec",
+				"checkApi"
+			],
+			[
+				"in",
+				"inline-block"
+			],
+			[
+				"back",
+				"background-repeat"
+			],
+			[
+				"ba",
+				"background-position"
+			],
+			[
+				"associatio",
+				"association"
+			],
+			[
+				"number",
+				"numberInput"
+			],
+			[
+				"round",
+				"roundOff"
+			],
+			[
+				"pay",
+				"PaygreenInsites"
+			],
+			[
+				"font",
+				"font-size"
+			],
+			[
+				"margin",
+				"margin-top"
+			],
+			[
+				"l",
+				"label\tTag"
+			],
+			[
+				"p",
+				"PaygreenInsites"
+			],
+			[
+				"Payg",
+				"PaygreenInsites"
+			],
+			[
+				"setc",
+				"setCallToActionText"
+			],
+			[
+				"paiement",
+				"paiementData"
+			],
+			[
+				"nu",
+				"numberInput"
+			],
+			[
+>>>>>>> iframe
 				"range",
 				"rangeSlider"
 			],
@@ -252,6 +387,7 @@
 	},
 	"file_history":
 	[
+<<<<<<< HEAD
 		"/var/www/prestashop17/modules/paygreen/views/js/1.7/iframe.js",
 		"/home/matt/Documents/test/test.html",
 		"/var/www/prestashop17/modules/paygreen/views/js/1.7/iframe.css",
@@ -273,13 +409,95 @@
 		"/var/www/prestashop17/modules/paygreen/upgrade/upgrade-2.0.0.php",
 		"/var/www/prestashop17/paygreen/config.xml",
 		"/var/www/prestashop17/modules/paypal/paypal.php",
+=======
+		"/var/www/prestashop17/modules/paygreen/views/templates/front/1.6/payment.tpl",
+		"/var/www/prestashop17/modules/skrill/skrill.php",
+		"/var/www/prestashop17/modules/paygreen/views/css/1.7/payment_options.css",
+		"/home/matt/Téléchargements/paygreen/paygreen.php",
+		"/var/www/prestashop17/modules/paygreen/views/templates/front/1.7/payment.tpl",
+		"/var/www/prestashop16/paygreen/paygreen.php",
+		"/var/www/prestashop17/modules/paygreen/views/css/1.7/paygreenInsites.css",
+		"/var/www/prestashop17/modules/paygreen/rounding.php",
+		"/var/www/prestashop17/modules/paygreen/views/js/1.7/paygreenInsites.js",
+		"/var/www/prestashop17/modules/paygreen/views/templates/front/1.7/iframe.tpl",
+		"/var/www/prestashop17/modules/paypal/paypal.php",
+		"/var/www/prestashop17/payplug/payplug.php",
+		"/var/www/prestashop17/modules/paygreen/paygreen.php",
+		"/var/www/prestashop16/paygreen/sql/install.php",
+		"/var/www/prestashop17/paygreen/paygreen.php",
+		"/var/www/prestashop16/modules/paygreen/paygreen.php",
+		"/var/www/prestashop17/modules/paypal/views/templates/front/payment_infos_card.tpl",
+		"/var/www/prestashop17/modules/paypal/views/templates/front/payment_infos.tpl",
+		"/var/www/prestashop17/modules/stripe_official/views/templates/hook/payment.tpl",
+		"/var/www/prestashop17/modules/paygreen/views/templates/front/payment.tpl",
+		"/var/www/prestashop17/modules/stripe_official/stripe_official.php",
+		"/var/www/prestashop17/modules/paygreen/views/templates/front/payment_form.tpl",
+		"/var/www/prestashop17/modules/payplug/views/js/admin_order.js",
+		"/var/www/prestashop17/modules/payplug/views/js/admin_order_popin.js",
+		"/var/www/prestashop17/modules/payplug/views/js/admin.js",
+		"/var/www/prestashop17/modules/payplug/views/js/front.js",
+		"/var/www/prestashop17/modules/payplug/views/js/embedded.js",
+		"/var/www/prestashop17/modules/payplug/views/templates/front/embedded.tpl",
+		"/var/www/prestashop17/modules/payplug/payplug.php",
+		"/var/www/prestashop17/modules/stripe_official/views/templates/front/order-confirmation.tpl",
+		"/var/www/prestashop17/modules/paygreen/views/templates/admin/1.6/configureButtons.tpl",
+		"/var/www/prestashop17/modules/paygreen/views/templates/admin/1.7/configureButtons.tpl",
+		"/var/www/prestashop17/modules/paygreen/views/js/1.7/back.js",
+		"/var/www/prestashop17/modules/paygreen/views/js/1.7/PaygreenInsites.js",
+		"/var/www/prestashop17/modules/paygreen/views/css/1.7/PaygreenInsites.css",
+		"/var/www/prestashop17/modules/paygreen/sql/install.php",
+		"/var/www/prestashop17/modules/paygreen/views/js/1.7/ion.rangeSlider.js",
+		"/var/www/prestashop17/modules/paygreen/views/css/1.5/index.php",
+		"/var/www/prestashop17/modules/paygreen/views/js/1.6/index.php",
+		"/var/www/prestashop17/modules/paygreen/views/css/1.6/index.php",
+		"/var/www/prestashop17/modules/paygreen/views/js/1.7/jquery-1.12.3.min.js",
+		"/var/www/prestashop17/modules/paygreen/test.php",
+		"/var/www/prestashop17/modules/paygreen/upgrade/upgrade-2.0.0.php",
+		"/var/www/prestashop17/modules/paygreen/views/css/1.7/normalize.css",
+		"/var/www/prestashop17/modules/paygreen/views/css/1.7/ion.rangeSlider.skinFlat.css",
+		"/var/www/prestashop17/modules/paygreen/views/css/1.7/ion.rangeSlider.css",
+		"/var/www/prestashop17/modules/paygreen/controllers/front/validation.php",
+		"/var/www/prestashop17/modules/paygreen/validation.php",
+		"/var/www/prestashop16/modules/paygreen/lib/PaygreenClient.php",
+		"/home/matt/.cache/.fr-eHweg8/paygreen/paygreen.php",
+		"/var/www/prestashop17/modules/paygreen/verify.php",
+		"/var/www/prestashop17/payplug/views/js/admin.js",
+		"/var/www/prestashop17/payplug/views/js/front.js",
+		"/var/www/prestashop17/payplug/views/templates/front/embedded.tpl",
+		"/var/www/prestashop17/payplug/views/js/embedded.js",
+		"/var/www/prestashop17/modules/paygreen/lib/PaygreenClient.php",
+		"/var/www/prestashop17/modules/paygreen/views/js/1.7/loadJquery.js",
+		"/home/matt/.cache/.fr-7OgENC/Paygreen/outils.php",
+		"/home/matt/.cache/.fr-56HZTy/Paygreen/set.php",
+		"/var/www/prestashop17/modules/paygreen/lib/PaygreenApiClient.php",
+		"/var/www/prestashop17/modules/paygreen/views/js/front.js",
+		"/var/www/prestashop17/modules/paygreen/views/js/1.7/gis.js",
+		"/var/www/prestashop17/modules/paygreen/views/js/1.7/test.html",
+		"/var/www/prestashop17/modules/paygreen/paygreen.php.zip",
+		"/var/www/prestashop17/modules/paygreen/views/css/back.css",
+		"/var/www/prestashop17/modules/paygreen/lib/debug.log",
+		"/var/www/prestashop17/modules/paygreen/views/templates/hook/confirmation.tpl",
+		"/var/www/prestashop17/classes/order/Order.php",
+		"/var/www/prestashop17/modules/paygreen/views/js/1.7/iframe.js",
+		"/home/matt/Documents/test/test.html",
+		"/var/www/prestashop17/modules/paygreen/views/js/1.7/iframe.css",
+		"/var/www/prestashop17/modules/paygreen/views/templates/front/1.7/payment_info.tpl",
+		"/var/www/presta16/modules/paygreen/paygreen.php",
+		"/home/matt/.cache/.fr-I0cwCI/paygreen/verify.php",
+		"/var/www/prestashop17/modules/paygreen/decode.php",
+		"/var/www/prestashop17/modules/payplug/controllers/front/dispatcher.php",
+		"/var/www/prestashop17/paygreen/config.xml",
+>>>>>>> iframe
 		"/var/www/prestashop16/modules/paygreen/translations/fr.php",
 		"/var/www/prestashop17/paygreen/translations/fr.php",
 		"/var/www/prestashop17/modules/paygreen/translations/fr.php",
 		"/var/www/prestashop16/modules/paygreen/notification.php",
 		"/var/www/prestashop16/modules/paygreen/validation.php",
 		"/var/www/prestashop16/modules/paygreen/verify.php",
+<<<<<<< HEAD
 		"/var/www/prestashop17/modules/paygreen/sql/install.php",
+=======
+>>>>>>> iframe
 		"/var/www/prestashop17/modules/paygreen/install/install.sql",
 		"/var/www/prestashop17/classes/order/OrderState.php",
 		"/var/www/prestashop17/modules/payplug/controllers/front/validation.php",
@@ -292,7 +510,10 @@
 		"/var/www/prestashop17/modules/paygreen/views/templates/admin/1.6/configureHook.tpl",
 		"/var/www/prestashop17/modules/paygreen/views/templates/admin/1.7/configureHook.tpl",
 		"/var/www/prestashop17/modules/paypal/views/templates/admin/configuration.tpl",
+<<<<<<< HEAD
 		"/var/www/prestashop17/modules/paypal/views/templates/front/payment_infos.tpl",
+=======
+>>>>>>> iframe
 		"/var/www/prestashop17/modules/paypal/controllers/front/ecInit.php",
 		"/var/www/prestashop17/modules/paypal/classes/PaypalCapture.php",
 		"/var/www/prestashop17/modules/paypal/classes/PaypalOrder.php",
@@ -308,7 +529,10 @@
 		"/var/www/prestashop17/modules/paygreen/lib/DbManagement.php",
 		"/var/www/prestashop17/modules/paygreen/views/templates/front/1.7/option.tpl",
 		"/var/www/prestashop17/modules/paygreen/lib/Formulaire.php",
+<<<<<<< HEAD
 		"/var/www/prestashop17/modules/skrill/skrill.php",
+=======
+>>>>>>> iframe
 		"/var/www/prestashop17/modules/paygreen/views/templates/front/payment_infos.tpl",
 		"/var/www/prestashop17/modules/paypal/classes/MethodEC.php",
 		"/var/www/prestashop17/modules/paypal/classes/AbstractMethodPaypal.php",
@@ -318,17 +542,24 @@
 		"/var/www/prestashop17/modules/ps_checkpayment/views/templates/hook/infos.tpl",
 		"/var/www/prestashop17/classes/PaymentModule.php",
 		"/var/www/prestashop16/modules/paygreen/views/templates/front/1.6/payment.tpl",
+<<<<<<< HEAD
 		"/var/www/prestashop17/modules/paygreen/validation.php",
 		"/var/www/prestashop17/modules/paygreen/notification.php",
 		"/var/www/prestashop17/modules/paygreen/lib/PaygreenClient.php",
 		"/var/www/prestashop17/modules/paygreen/views/templates/front/1.5/payment.tpl",
 		"/var/www/prestashop17/modules/paygreen/views/templates/admin/1.5/configureButtons.tpl",
 		"/var/www/prestashop17/modules/paygreen/views/templates/admin/1.6/configureButtons.tpl",
+=======
+		"/var/www/prestashop17/modules/paygreen/notification.php",
+		"/var/www/prestashop17/modules/paygreen/views/templates/front/1.5/payment.tpl",
+		"/var/www/prestashop17/modules/paygreen/views/templates/admin/1.5/configureButtons.tpl",
+>>>>>>> iframe
 		"/var/www/prestashop17/modules/paygreen/views/templates/admin/1.7/configure.tpl",
 		"/var/www/prestashop17/modules/paygreen/views/templates/admin/1.7/connectApi.tpl",
 		"/var/www/prestashop17/modules/paygreen/views/templates/admin/template_1.tpl",
 		"/var/www/prestashop17/modules/paygreen/lib/formulaire.php",
 		"/var/www/prestashop17/modules/paygreen/views/js/1.5/back.js",
+<<<<<<< HEAD
 		"/var/www/prestashop17/modules/paygreen/views/js/1.7/back.js",
 		"/var/www/prestashop17/modules/paygreen/views/js/1.6/back.js",
 		"/var/www/prestashop17/modules/paygreen/views/js/1.6/front.js",
@@ -384,6 +615,13 @@
 	"find":
 	{
 		"height": 22.0
+=======
+		"/var/www/prestashop17/modules/paygreen/views/js/1.6/back.js"
+	],
+	"find":
+	{
+		"height": 23.0
+>>>>>>> iframe
 	},
 	"find_in_files":
 	{
@@ -397,6 +635,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+<<<<<<< HEAD
 			"configureB",
 			"db",
 			"getButtonsList",
@@ -525,6 +764,136 @@
 			"initializeDb",
 			"createOrderStatuses",
 			"suppo"
+=======
+			"installTab",
+			"submit",
+			"integration",
+			"displayType",
+			"submit",
+			"getButtonsList",
+			"submit",
+			"',\n",
+			"data(\"ionRangeSlider\")",
+			"instance",
+			">",
+			"generateForm",
+			"renderForm",
+			"generateForm",
+			"getEmbeddedPaymentOption",
+			"  ",
+			"';\n",
+			"};",
+			"()) ",
+			"params.m",
+			"maxD",
+			"Tools::getValue",
+			"Tools",
+			"iframe",
+			"postProcess",
+			"cn",
+			"ACCEPTED_COUNTRIES",
+			"Db::getInstance()",
+			"Tools::getValue(",
+			"collapse",
+			"checked()",
+			"checked",
+			" ']').",
+			"insites",
+			"getButtonsList",
+			"configureButton",
+			"initializeDb",
+			"displayType",
+			"}\n",
+			"verifyConfiguration",
+			"getIframePaymentOption",
+			"update",
+			"InsertPaygreenTransaction",
+			"insertPaygreenTransaction",
+			"insertTransaction",
+			"update",
+			"insertTransaction",
+			"InsertPaygreenTransaction",
+			"insertPaygreenTransaction",
+			"insertTransaction",
+			"insertPaygreenRecurringTransaction",
+			"insertTransaction",
+			"new",
+			"new A",
+			"Db::getInstance()->",
+			"delete",
+			"insert",
+			"executeSqlString",
+			"insert",
+			"update",
+			"SET state=' . $paygreenTransaction['state'] . ' WHERE id_cart=' . $paygreenTransaction['id_cart'];",
+			"db",
+			"update",
+			"db",
+			"postProcess",
+			"paygreen_btn_form",
+			"getEmbeddedPaymentOption",
+			"postProcess",
+			"getContent",
+			"postProcess",
+			"Tools::isSubmit",
+			"getCaller",
+			"generatePaiementData",
+			"getActionForm",
+			"verifyConfiguration",
+			"getPaygreenConfig",
+			"checkApi",
+			"postProcess",
+			"IsSubmit",
+			"submit",
+			"});",
+			"submit",
+			"configureButton",
+			"$this->generatePaiementData",
+			"validateWebPayment",
+			"min",
+			"data",
+			"offset",
+			"\"\\\">&",
+			"choiccol",
+			"extra-controls",
+			"ext",
+			"12",
+			"checkApi",
+			"}\n",
+			"extension_loaded('mcrypt')",
+			"verifyConfiguration",
+			"getIframePaymentOption",
+			"verifyConfiguration",
+			"payment.tpl",
+			"getExternalPaymentOption",
+			"ini_get('allow_url_fopen')",
+			"PaygreenApi",
+			"requestApi",
+			"                            \n",
+			";</",
+			"});",
+			"var slider;\nvar PaygreenInsites = {\n\n\timageCss: function() {\n\t\t$(\"a[id=assoc]\").css(\"color\", \"black\");\n\t\t$(\".assoc\").on('mouseenter', function() {\n\t\t\tif( $('input[id=option]').is(':checked') ){\n\t\t\t\t$(\".assoc\").css(\"border\", \"2px solid white\");\n\t\t\t\tthis.style.border = \"2px solid rgba(123, 183, 97, 1)\";\n\t\t\t}\n\t\t});\n\n\t\t$(\".assoc\").on('click', function() {\n\t\t\t$(\".assoc\").css(\"background-color\", \"white\");\n\t\t\tthis.style.backgroundColor = \"rgba(123, 183, 97, 1)\";\n\t\t\t$('input[id=option]').prop(\"checked\", true);\n\t\t\tPaygreenInsites.checked();\n\t\t});\n\t},\n\n    checked: function() {\n\t\tif($('input[id=option]').is(':checked')){\n\t\t\t$(\".irs.js-irs-0\").css(\"visibility\", \"visible\");\n\t\t\t$('#number').css(\"visibility\", \"visible\");\n\t\t\t$('.choice').css(\"visibility\", \"visible\");\n\t\t\tdocument.getElementById(\"number\").value = 0;\n\t\t\t$('.irs-bar').css(\"width\",\"0%\");\n\t\t\t$('.irs-slider.single').css(\"left\", \"0%\");\n\t\t\tif (document.getElementById(\"overlay\").getElementsByTagName('img').length == 1) {\n\t\t\t\t$(\".assoc\").css(\"background-color\", \"rgba(123, 183, 97, 1)\");\n\t\t\t}\n\t\t} else {\n\t\t\t$('.choice').css(\"visibility\", \"hidden\");\n\t\t\t$(\".irs.js-irs-0\").css(\"visibility\", \"hidden\");\n\t\t\t$('#number').css(\"visibility\", \"hidden\");\n\t\t\t$(\".assoc\").css(\"border\", \"2px solid white\");\n\t\t\t$(\".assoc\").css(\"background-color\", \"white\");\n\t\t}\n\t},\n\tnumberInput: function() {\n\t    $('#range').ionRangeSlider({\n\t        min: 0.10,\n\t\t\tmax: 5,\n\t\t\tfrom: 0.1,\n\t\t\tstep:0.1,\n\t\t\thide_min_max: true,\n\t   \t\thide_from_to: true,\n\t   \t\tkeyboard: true,\n\t   \t\tkeyboard_step: 0.01,\n\t   \t\tonChange : function (data) {\n\t        \tdocument.getElementById(\"number\").value = data.from;\n\t    \t}\n\t    \n\t    });\n\t    slider = $('#range').data(\"ionRangeSlider\");\n\t},\n\n\tdonate: function() {\n\t\trange = document.getElementById(\"range\");\n\t\tnumber = document.getElementById(\"number\");\n\t\trange.oninput = function() {\n\t\t\tnumber.value = this.value;\n\t\t};\n\t\tnumber.oninput = function() {\n\t\t\trange.value = this.value;\n\t\t\tperCent = slider.result.max / 10 * this.value;\n\t\t\t$('.irs-bar').css(\"width\",(perCent * 10) + \"%\");\n\t\t\t$('.irs-slider.single').css(\"left\", (perCent * 10) + \"%\");\n\t\t};\n\t},\n\tinputCss: function() {\n\t\t$(\".choice.form-control.input-xs.pull-righ\").focus(function() {\n\t\t\t$(this).css(\"outline\", \"none\");\n\t\t\t$(this).css(\"background-color\",\"none\");\n\t\t});\n\t}\n}\n\n$(document).ready(function() {\n\t$('#number').css(\"visibility\", \"hidden\");\n    PaygreenInsites.imageCss();\n    PaygreenInsites.numberInput();\n    PaygreenInsites.checked;\n\t$('input[id=option]').on('change', PaygreenInsites.checked);\n\tPaygreenInsites.donate();\n\t\n});",
+			"configure",
+			"getIframePaymentOption",
+			"i",
+			"I",
+			"getExternalPaymentOption",
+			"getIframePaymentOption",
+			"}\n",
+			"5",
+			"\n",
+			"isPreprod",
+			"insertPaygreenTransaction",
+			"validateOrder",
+			"InsertPaygreenTransaction",
+			"insertPaygreenTransaction",
+			"InsertPaygreenTransaction",
+			"insertPaygreenTransaction",
+			"insertTransaction",
+			"paiement a",
+			"insertTransaction",
+			"insertPaygreenTransactio"
+>>>>>>> iframe
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -549,7 +918,11 @@
 	],
 	"incremental_find":
 	{
+<<<<<<< HEAD
 		"height": 22.0
+=======
+		"height": 23.0
+>>>>>>> iframe
 	},
 	"input":
 	{
@@ -586,7 +959,11 @@
 	"project": "AdminPaygreenController.sublime-project",
 	"replace":
 	{
+<<<<<<< HEAD
 		"height": 40.0
+=======
+		"height": 42.0
+>>>>>>> iframe
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -628,7 +1005,11 @@
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
+<<<<<<< HEAD
 	"side_bar_width": 150.0,
+=======
+	"side_bar_width": 186.0,
+>>>>>>> iframe
 	"status_bar_visible": true,
 	"template_settings":
 	{

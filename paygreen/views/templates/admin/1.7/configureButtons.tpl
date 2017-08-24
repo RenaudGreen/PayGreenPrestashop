@@ -23,9 +23,10 @@
 *  International Registered Trademark & Property of PrestaShop SA
 *
 *}
+<script type="text/javascript" src="/modules/paygreen/views/js/1.7/back.js"></script>
 <div class="panel">
     <div class="panel-heading">
-        <i class="icon-image"></i> {l s='Configuration payment buttons' mod='paygreen'}
+        <i class="icon-image"></i> {l s='Configuration Payment Butons' mod='paygreen'}
     </div>
     <div class="row">
         {foreach from=$buttons key=key item=btn}
@@ -57,6 +58,7 @@
                                 <input id="label" name="label" type="text"
                                        placeholder="{l s='Button label' mod='paygreen'}" class="form-control input-md"
                                        required="required" value="{$btn['label']|escape:'html':'UTF-8'}">
+
                                 <span class="help-block">{l s='Text displayed to the right of the icon' mod='paygreen'}</span>
                             </div>
                         </div>
@@ -78,12 +80,12 @@
                                                 src="{$icondir|escape:'html':'UTF-8'}{$btn['image']|escape:'html':'UTF-8'}"
                                                 style="max-height:40px;"/></a>
                                 {else}
-                                    <img src="{$icondir|escape:'html':'UTF-8'}paygreen_paiement1_6.png"
+                                    <img src="{$icondir|escape:'html':'UTF-8'}paygreen_paiement1_7.png"
                                          style="max-height:40px;"/>
                                 {/if}
                             </div>
                         </div>
-                        
+
                         <!-- Select Basic -->
                         <div class="form-group">
                             <label class="col-md-4 control-label"
@@ -102,7 +104,7 @@
                             <label class="col-md-4 control-label"
                                    for="position">{l s='Display Order' mod='paygreen'}</label>
                             <div class="col-md-7">
-                                <input id="position" name="position" type="number" placeholder=""
+                                <input id="position" name="position" min="0" type="number" placeholder=""
                                        class="form-control input-md" value="{$btn['position'|escape:'html':'UTF-8']}">
                                 <span class="help-block">{l s='if empty, the position will be automatic' mod='paygreen'}</span>
                             </div>
@@ -120,8 +122,6 @@
                                 <span class="help-block">{l s='if SSL is disabled, all butons IFrame will be disabled' mod='paygreen'}</span>
                             </div>
                         </div>
-
-
                         <!-- Select Basic -->
                         <div class="form-group">
                             <label class="col-md-4 control-label"
@@ -181,7 +181,7 @@
                                    for="displayType" id ="labelReport">{l s='Payment deferment' mod='paygreen'}</label>
                             <div class="col-md-7">
                                 <select id="reportPayment" name="reportPayment" class="form-control">
-                                    <option value="0"{if $btn['reportPayment'] == '0'} selected="selected"{/if}>{l s='No report' mod='paygreen'}</option>
+                                    <option value="0"{if $btn['reportPayment'] == '0'} selected="selected"{/if}>{l s='No deferment' mod='paygreen'}</option>
                                     <option value="1 week"{if $btn['reportPayment'] == '1 week'} selected="selected"{/if}>{l s='1 week' mod='paygreen'}</option>
                                     <option value="2 weeks"{if $btn['reportPayment'] == '2 weeks'} selected="selected"{/if}>{l s='2 weeks' mod='paygreen'}</option>
                                     <option value="1 month"{if $btn['reportPayment'] == '1 month'} selected="selected"{/if}>{l s='1 month' mod='paygreen'}</option>
@@ -209,14 +209,14 @@
                             <label class="col-md-4 control-label"
                                    for="nbPayment">{l s='Amount cart' mod='paygreen'}</label>
                             <div class="col-xs-5 col-md-3">
-                                <input id="minAmount" name="minAmount" type="number" placeholder=""
+                                <input id="minAmount" name="minAmount" min="0" type="number" placeholder=""
                                        class="form-control input-md"
                                        value="{if $btn['minAmount']>0}{$btn['minAmount'|escape:'html':'UTF-8']}{/if}">
                                 <span class="help-block">{l s='Minimum' mod='paygreen'}</span>
                             </div>
                             <div class="col-xs-2 col-md-1 text-center">{l s='to' mod='paygreen'}</div>
                             <div class="col-xs-5 col-md-3">
-                                <input id="maxAmount" name="maxAmount" type="number" placeholder=""
+                                <input id="maxAmount" name="maxAmount" min="0" type="number" placeholder=""
                                        class="form-control input-md"
                                        value="{if $btn['maxAmount']>0}{$btn['maxAmount'|escape:'html':'UTF-8']}{/if}">
                                 <span class="help-block">{l s='Maximum' mod='paygreen'}</span>

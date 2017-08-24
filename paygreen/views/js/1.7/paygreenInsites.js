@@ -36,7 +36,10 @@
   	};
   	var params=$.extend(defautlts, options);
   	var maxDonation = Math.ceil(params.amount * 0.2);
+<<<<<<< HEAD
   	console.log(params);
+=======
+>>>>>>> iframe
     return this.each(function() {
     	var doc = $(this);
     	var select,

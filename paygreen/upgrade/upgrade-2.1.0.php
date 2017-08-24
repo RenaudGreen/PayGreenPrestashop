@@ -28,9 +28,12 @@ function upgrade_module_2_1_0()
 {
     return Db::getInstance()->Execute(
         'ALTER TABLE '._DB_PREFIX_.'paygreen_buttons
+<<<<<<< HEAD
         ADD `perCentPayment` INT NULL,
         ADD `subOption` INT DEFAULT 0,
         ADD `reductionPayment` VARCHAR(45) DEFAULT \'none\',
+=======
+>>>>>>> iframe
         ADD `integration` INT NOT NULL DEFAULT 0'
     );
 }

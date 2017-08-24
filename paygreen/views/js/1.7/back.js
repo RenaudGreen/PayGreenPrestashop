@@ -33,6 +33,22 @@ $(document).ready(function() {
             this
         );
     }
+
+const CASH = 0;
+const SUB = 1;
+const  REC = 3;
+const DELIVERY = -1;
+
+
+$(document).ready(function() {
+    var selectList = document.querySelectorAll('[id=executedAt]');
+    for (var k = 0;k < selectList.length; k++) {
+        checkExecutedAt(selectList[k]);
+        selectList[k].onchange = function() {
+            checkExecutedAt(
+                this
+            );
+        }
     }
 });
 
@@ -45,12 +61,18 @@ function checkExecutedAt(select) {
     var labelPercent = document.querySelectorAll('[id=labelPerCentPayment]');
     var labelSubOption = document.querySelectorAll('[id=labelSubOption]');
     var checkbox = document.querySelectorAll('[id=subOption]');
+    var help = document.querySelectorAll('[id=spanNbPayment]');
+    var label = document.querySelectorAll('[id=labelNbPayment]');
+    var paymentReport = document.querySelectorAll('[id=labelReport]');
+    var selectReport = document.querySelectorAll('[id=reportPayment]');
+    var paymentDue = document.querySelectorAll('[id=nbPayment]');
     var n;
     for (var i = 0;i < temp.length; ++i) {
         if (temp[i] == select) {
             n = i;
         }
     }
+/*<<<<<<< HEAD
     if (select.value == 1) {
         displayAllPayment(labelPaymentDue[n], labelReport[n], "block");
         displayPerCentPayment(labelPercent[n], "none");
@@ -91,4 +113,41 @@ function displayPaymentDue(labelPaymentDue, mode) {
 
 function displayPaymentReport(labelReport, mode) {
     labelReport.parentNode.style.display = mode;
+}
+=======*/
+    if (select.value == SUB) {
+        displayAllPayment(paymentDue[n], help[n], label[n], paymentReport[n], selectReport[n], "block", select.value);
+    } else if (select.value == REC) {
+        displayPaymentReport(paymentReport[n], selectReport[n], "none", select.value);
+        displayPaymentDue(paymentDue[n], help[n], label[n], "block", select.value);
+    } else {
+        displayAllPayment(paymentDue[n], help[n], label[n], paymentReport[n], selectReport[n], "none", select.value);
+    }
+}
+
+function displayAllPayment(paymentDue, help, label, paymentReport, selectReport, mode, value) {
+    displayPaymentDue(paymentDue, help, label, mode, value);
+    displayPaymentReport(paymentReport, selectReport, mode, value);
+}
+
+function displayPaymentDue(paymentDue, help, label, mode, value) {
+    if (value == CASH || value == DELIVERY) {
+        paymentDue.value = 1;
+    }
+    paymentDue.style.display = mode;
+    help.style.display = mode;
+    label.style.display = mode;
+}
+
+function displayPaymentReport(paymentReport, selectReport, mode, value) {
+    if (value !=  SUB) {
+        selectReport.value = "0";
+    }
+    paymentReport.style.display = mode;
+    selectReport.style.display = mode;
+}
+
+function checkInstallments() {
+    paymentDue = document.getElementById("nbPayment");
+    alert(paymentDue.value);
 }

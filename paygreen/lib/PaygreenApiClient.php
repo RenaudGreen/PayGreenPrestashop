@@ -127,7 +127,7 @@ class PaygreenApiClient
 
             break;
 
-                        case 'validate-rounding':
+            case 'validate-rounding':
             $datas = array(
                 'method' => 'PATCH',
                 'url' =>  self::getUrlProd().'/'.self::getUI().'/solidarity/'.$datas['paymentToken'],
@@ -195,7 +195,6 @@ class PaygreenApiClient
             );
 
             break;
-
             default:
                 return false;
         }
@@ -238,9 +237,7 @@ class PaygreenApiClient
                     ),
             ));
             $page = curl_exec($ch);
-            var_dump($page);
             curl_close($ch);
-
         } else if(ini_get('allow_url_fopen')) {
 
             $opts = array(
@@ -264,7 +261,6 @@ class PaygreenApiClient
         return json_decode($page);
 
     }
-
 
     /**
     * Get Status of the shop
@@ -391,7 +387,7 @@ class PaygreenApiClient
     public static function validIdShop($UI, $CP)
     {
         self::IdsAreEmpty($UI, $CP);
-        $valid = self::requestApi('are-valid-ids',null);
+        $valid = self::requestApi('are-valid-ids', null);
 
         if( $valid!=false ) {
             if(isset($valid->error)){
