@@ -35,6 +35,7 @@ $sql = array();
 $sql[] = 'DROP TABLE IF EXISTS `'._DB_PREFIX_.'paygreen_buttons` ;';
 $sql[] = 'DROP TABLE IF EXISTS `'._DB_PREFIX_.'paygreen_recurring_transaction` ;';
 $sql[] = 'DROP TABLE IF EXISTS `'._DB_PREFIX_.'paygreen_transactions` ;';
+$sql[] = 'DROP TABLE IF EXISTS `'._DB_PREFIX_.'paygreen_fingerprint` ;';
 
 foreach ($sql as $query) {
     if (Db::getInstance()->execute($query) == false) {

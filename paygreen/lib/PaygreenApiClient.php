@@ -137,6 +137,11 @@ class PaygreenApiClient
         return $this->requestApi('refund', $datas);
     }
 
+    public static function sendFingerprintDatas($data) {
+        $datas['content'] = $data;
+        return $this->requestApi('send-ccarbone', $datas);
+    }
+
     /**
     * To validate the shop
     *
@@ -488,4 +493,12 @@ class PaygreenApiClient
             'http'      =>  $http
         ));
     }
+
+    private function send_ccarbone($datas, $http) {
+        return ($data = array(
+            'method' => 'POST',
+            'url' => self::getUrlProd().'/'.self::getUI().'/payins/ccarbone',
+            'http' => $http
+        ));
+    }    
 }

@@ -68,6 +68,14 @@ class PaygreenDatabase
             `date_payment` date NOT NULL,
             PRIMARY KEY (`id`, `rank`)) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;';
 
+        $sql[] = ' CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'paygreen_fingerprint` (
+            `fingerprint` varchar(100) NOT NULL,
+            `key` varchar(255) NOT NULL,
+            `value` varchar(255) NOT NULL,
+            `createdAt` datetime NOT NULL,
+            `index` varchar(255) NOT NULL
+            ) ENGINE=MyISAM DEFAULT CHARSET=utf8;';
+
         foreach ($sql as $query) {
             if (Db::getInstance()->execute($query) == false) {
                 return false;
