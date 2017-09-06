@@ -33,8 +33,8 @@ require_once implode(DIRECTORY_SEPARATOR, array(dirname(__FILE__), 'paygreen.php
 
 $o_paygreen = new Paygreen();
 
-if ($o_paygreen->validateWebPayment($_REQUEST, true)) {
-    echo 'Notification success';
+if ($o_paygreen->validateWebPayment($_REQUEST['pid'], true)) {
+    echo '<br>Notification success';
 } else {
-    echo 'Notification failure. See log for details';
+    echo '<br>Notification failure. See log for details';
 }

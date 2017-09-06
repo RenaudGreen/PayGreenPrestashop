@@ -29,7 +29,7 @@ require_once implode(DIRECTORY_SEPARATOR, array(dirname(__FILE__), '..', '..', '
 require_once implode(DIRECTORY_SEPARATOR, array(dirname(__FILE__), 'paygreen.php'));
 
 $o_paygreen = new Paygreen();
-if ($o_paygreen->validateWebPayment($_REQUEST)) {
+if ($o_paygreen->validateWebPayment($_REQUEST['pid'])) {
     echo 'validation success';
 } else {
     echo 'validation failure. See log for details';

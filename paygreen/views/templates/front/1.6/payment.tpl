@@ -74,7 +74,9 @@
 		</div>
 		{/if}
 		<form id="PayGreenCashForm{$btn['id']|escape:'html':'UTF-8'}" action="{$btn.paiement.action|escape:'html':'UTF-8'}" method="post">
-			<input type="hidden" name="data" value="{$btn.paiement.paiementData|escape:'html':'UTF-8'}" />
+			<input type="hidden" name="paymentData" value="{$btn.paiement.paymentData|escape:'html':'UTF-8'}" />
+			<input type="hidden" name="paymentType" value="{$btn.paiement.paymentType|escape:'html':'UTF-8'}" />
+			<input type="hidden" name="displayType" value="{$btn.paiement.displayType|escape:'html':'UTF-8'}" />
 			<input type="hidden" name="referer" value="prestashop" />
 		</form>
 	</span>

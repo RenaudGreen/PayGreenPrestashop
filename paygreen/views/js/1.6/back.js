@@ -49,7 +49,6 @@ function checkExecutedAt(select) {
     var label = document.querySelectorAll('[id=labelNbPayment]');
     var paymentReport = document.querySelectorAll('[id=labelReport]');
     var selectReport = document.querySelectorAll('[id=reportPayment]');
-    var paymentDue = document.querySelectorAll('[id=nbPayment]');
 
     var n;
     for (var i = 0;i < temp.length; ++i) {

@@ -45,10 +45,7 @@ function upgrade_module_2_0_0($object)
         $hookName[] =  'paymentOptions';
     }
     $object->updatePositionHook($hookName);
-<<<<<<< HEAD
     Db::getInstance()->Execute('SET foreign_key_checks = 0');
-=======
->>>>>>> iframe
     Db::getInstance()->Execute(
         'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'paygreen_recurring_transaction` (
         `id` int(11) NOT NULL,
@@ -64,13 +61,10 @@ function upgrade_module_2_0_0($object)
         PRIMARY KEY (`id`, `rank`)
         ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8'
     );
-<<<<<<< HEAD
     Db::getInstance()->Execute('SET foreign_key_checks = 1');
-=======
     Db::getInstance()->Execute(
         'ALTER TABLE '._DB_PREFIX_.'paygreen_buttons
         ADD [COLUMN] `integration` INT NOT NULL DEFAULT 0'
     );
->>>>>>> iframe
     return true;
 }

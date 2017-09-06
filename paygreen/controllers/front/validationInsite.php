@@ -52,15 +52,39 @@ class PaygreenValidationInsiteModuleFrontController extends ModuleFrontControlle
         if (!$authorized) {
             die($this->module->l('This payment method is not available.', 'validationInsite'));
         }
+        // $o_paygreen = new Paygreen();
+        // $ui = $o_paygreen->getUniqueIdPP();
+        // $cp = Configuration::get($o_paygreen::_CONFIG_PRIVATE_KEY);
+        // $host = $this->getPaygreenConfig('host');
+        // $result = PaygreenApiClient::getInstance($ui, $cp, $host)->getTransactionInfo($_REQUEST['pid']);
+        // if ($result->success && $result->data->result->status == 'PENDING') {
+        //     Tools::redirect('index.php?controller=order&step=3&insite='.$_REQUEST['id']);
+        // } else {
+        //     $o_cart = new Cart($_REQUEST['cart_id']);
+        //     $n_order_id = (int)Order::getOrderByCartId($o_cart->id);
+        //     $o_order = new Order($n_order_id);
+        //     $o_paygreen->redirectToConfirmationPage($o_order);
+        // }
         $o_paygreen = new Paygreen();
-        $pac = new PaygreenApiClient();
         $ui = $o_paygreen->getUniqueIdPP();
         $cp = Configuration::get($o_paygreen::_CONFIG_PRIVATE_KEY);
-        $result = $pac->getTransactionInfo($ui, $cp, $_REQUEST['pid']);
-        if ($result->success && $result->data->result->status == 'PENDING') {
-            Tools::redirect('index.php?controller=order&step=3&insite='.$_REQUEST['id']);
+        $host = $o_paygreen->getPaygreenConfig('host');
+        $API = PaygreenApiClient::getInstance($ui, $cp, $host);
+
+        if (isset($_REQUEST['pid']) && !empty($_REQUEST['pid'])) {
+            $type = 0;
+            $payment = $API->getTransactionInfo($_REQUEST['pid']);
         } else {
-            $o_cart = new Cart($_REQUEST['cart_id']);
+            $type = 1;
+            $paymentType = $_REQUEST['paymentType'];
+            $paymentData = json_decode($_REQUEST['paymentData']);
+            $displayType = $_REQUEST['displayType'];
+            $payment = $o_paygreen->createPayment($paymentType, $paymentData, $displayType);
+        }
+        if ($payment->success && $payment->data->result->status == 'PENDING') {
+            Tools::redirect('index.php?controller=order&step=3&insite=' . $_REQUEST['id'] . '&pid=' . $payment->data->id);
+        } else {
+            $o_cart = new Cart($payment->data->metadata->cart_id);
             $n_order_id = (int)Order::getOrderByCartId($o_cart->id);
             $o_order = new Order($n_order_id);
             $o_paygreen->redirectToConfirmationPage($o_order);

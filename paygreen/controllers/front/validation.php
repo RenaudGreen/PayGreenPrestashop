@@ -30,7 +30,7 @@ class PaygreenValidationModuleFrontController extends ModuleFrontController
      * This class should be use by your Instant Payment
      * Notification system to validate the order remotely
      */
-    public function postProcess()
+/*    public function postProcess()
     {
         $cart = $this->context->cart;
         if ($cart->id_customer == 0
@@ -57,5 +57,58 @@ class PaygreenValidationModuleFrontController extends ModuleFrontController
             'params' => $_REQUEST,
         ));
         $this->setTemplate('module:paygreen/views/templates/front/payment_return.tpl');
+    }*/
+
+    const CASH_PAYMENT = 0;
+    const SUB_PAYMENT = 1;
+    const DEL_PAYMENT = -1;
+    const REC_PAYMENT = 3;
+
+    public function postProcess()
+    {
+        $cart = $this->context->cart;
+        if ($cart->id_customer == 0
+            || $cart->id_address_delivery == 0
+            || $cart->id_address_invoice == 0
+            || !$this->module->active
+        ) {
+            Tools::redirect('index.php?controller=order&step=1');
+        }
+        // Check that this payment option is still available
+        //in case the customer changed his address just before the end of the checkout process
+        $authorized = false;
+        foreach (Module::getPaymentModules() as $module) {
+            if ($module['name'] == 'paygreen') {
+                $authorized = true;
+                break;
+            }
+        }
+        if (!$authorized) {
+            die($this->module->l('This payment method is not available.', 'validation'));
+        }
+        $o_paygreen = new Paygreen();
+        $ui = $o_paygreen->getUniqueIdPP();
+        $cp = Configuration::get($o_paygreen::_CONFIG_PRIVATE_KEY);
+        $host = $o_paygreen->getPaygreenConfig('host');
+        $API = PaygreenApiClient::getInstance($ui, $cp, $host);
+
+        if (isset($_REQUEST['pid']) && !empty($_REQUEST['pid'])) {
+            $payment = $API->getTransactionInfo($_REQUEST['pid']);
+        } else {
+            $paymentType = $_REQUEST['paymentType'];
+            $paymentData = json_decode($_REQUEST['paymentData']);
+            $displayType = $_REQUEST['displayType'];
+            $payment = $o_paygreen->createPayment($paymentType, $paymentData, $displayType);
+        }
+        // var_dump($payment);
+        // die('qwe');
+        if ($payment->success && $payment->data->result->status == 'PENDING') {
+            Tools::redirect($payment->data->url);
+        } else {
+            $o_cart = new Cart($payment->data->metadata->cart_id);
+            $n_order_id = (int)Order::getOrderByCartId($o_cart->id);
+            $o_order = new Order($n_order_id);
+            $o_paygreen->redirectToConfirmationPage($o_order);
+        }
     }
 }

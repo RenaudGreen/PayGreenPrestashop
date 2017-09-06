@@ -136,6 +136,7 @@ class PaygreenClient
 
     public function parseData($post)
     {
+        throw new Exception('parseData -- BASE64 FORBIDDEN');
         $text = trim(mcrypt_decrypt(MCRYPT_BLOWFISH, $this->key, base64_decode($post), MCRYPT_MODE_ECB,
             mcrypt_create_iv(mcrypt_get_iv_size(MCRYPT_BLOWFISH, MCRYPT_MODE_ECB), MCRYPT_RAND)));
         $this->data = json_decode(utf8_decode($text), true);
@@ -143,6 +144,7 @@ class PaygreenClient
 
     public function generateData()
     {
+        throw new Exception('generateData -- BASE64 FORBIDDEN');
         $text = utf8_encode(json_encode($this->data));
         return trim(base64_encode(mcrypt_encrypt(MCRYPT_BLOWFISH, $this->key, $text, MCRYPT_MODE_ECB, mcrypt_create_iv(mcrypt_get_iv_size(MCRYPT_BLOWFISH, MCRYPT_MODE_ECB), MCRYPT_RAND))));
     }
@@ -229,7 +231,6 @@ class PaygreenClient
             $this->reccuringTransactionDay = $transactionDay;
             $this->reccuringStartAt = $startAt;
         }
-
         return $this;
     }
 

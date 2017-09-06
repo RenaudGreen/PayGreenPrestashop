@@ -27,7 +27,7 @@
         <legend>{l s='Configuration Paygreen Account' mod='paygreen'}</legend>
         <div class="flex-container row">
             <div class="flex-item logo text-center">
-                <h2><img class="img-responsive center-block" src="{$imgdir|escape:'html':'UTF-8'}paygreen-green.png" style="max-height:50px;"/></h2/>
+                <h2><img class="img-responsive center-block" src="{$imgdir|escape:'html':'UTF-8'}paygreen.png" style="max-height:50px;"/></h2/>
 
                     {if $connected == false}
                     <a href="{$urlBase|escape:'html':'UTF-8'}" class="button margin-top-10" role="button">{l s='Log in' mod='paygreen'}</a>

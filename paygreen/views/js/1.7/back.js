@@ -25,22 +25,6 @@
 */
 
 $(document).ready(function() {
-    var selectlist = document.querySelectorAll('[id=executedAt]');
-    for (var k = 0;k < selectlist.length; k++) {
-        checkExecutedAt(selectlist[k]);
-        selectlist[k].onchange = function() {
-        checkExecutedAt(
-            this
-        );
-    }
-
-const CASH = 0;
-const SUB = 1;
-const  REC = 3;
-const DELIVERY = -1;
-
-
-$(document).ready(function() {
     var selectList = document.querySelectorAll('[id=executedAt]');
     for (var k = 0;k < selectList.length; k++) {
         checkExecutedAt(selectList[k]);
@@ -51,6 +35,11 @@ $(document).ready(function() {
         }
     }
 });
+
+const CASH = 0;
+const SUB = 1;
+const REC = 3;
+const DELIVERY = -1;
 
 function checkExecutedAt(select) {
     var temp = document.querySelectorAll('[id=executedAt]');
@@ -65,14 +54,12 @@ function checkExecutedAt(select) {
     var label = document.querySelectorAll('[id=labelNbPayment]');
     var paymentReport = document.querySelectorAll('[id=labelReport]');
     var selectReport = document.querySelectorAll('[id=reportPayment]');
-    var paymentDue = document.querySelectorAll('[id=nbPayment]');
     var n;
     for (var i = 0;i < temp.length; ++i) {
         if (temp[i] == select) {
             n = i;
         }
     }
-/*<<<<<<< HEAD
     if (select.value == 1) {
         displayAllPayment(labelPaymentDue[n], labelReport[n], "block");
         displayPerCentPayment(labelPercent[n], "none");
@@ -114,7 +101,7 @@ function displayPaymentDue(labelPaymentDue, mode) {
 function displayPaymentReport(labelReport, mode) {
     labelReport.parentNode.style.display = mode;
 }
-=======*/
+/*
     if (select.value == SUB) {
         displayAllPayment(paymentDue[n], help[n], label[n], paymentReport[n], selectReport[n], "block", select.value);
     } else if (select.value == REC) {
@@ -140,7 +127,7 @@ function displayPaymentDue(paymentDue, help, label, mode, value) {
 }
 
 function displayPaymentReport(paymentReport, selectReport, mode, value) {
-    if (value !=  SUB) {
+    if (value != SUB) {
         selectReport.value = "0";
     }
     paymentReport.style.display = mode;
@@ -151,3 +138,4 @@ function checkInstallments() {
     paymentDue = document.getElementById("nbPayment");
     alert(paymentDue.value);
 }
+*/

@@ -23,10 +23,7 @@
 *  International Registered Trademark & Property of PrestaShop SA
 *
 *}
-<<<<<<< HEAD
-=======
 <script type="text/javascript" src="/modules/paygreen/views/js/1.7/back.js"></script>
->>>>>>> iframe
 <div class="panel">
     <div class="panel-heading">
         <i class="icon-image"></i> {l s='Configuration payment buttons' mod='paygreen'}
@@ -49,14 +46,6 @@
                                     <strong>{$btn['error']|escape:'htmlall':'UTF-8'}</strong>
                                 </div>
                             {/if}
-<<<<<<< HEAD
-                            {if isset($btn['warning'])}
-                                <div class="alert alert-warning">
-                                    <strong>{$btn['warning']|escape:'htmlall':'UTF-8'}</strong>
-                                </div>
-                            {/if}
-=======
->>>>>>> iframe
                         <!-- Text input-->
                         <div class="form-group">
                             <label class="col-md-4 control-label" for="label">{l s='Label' mod='paygreen'}</label>
@@ -119,11 +108,7 @@
                             <label class="col-md-4 control-label"
                                    for="position">{l s='Display Order' mod='paygreen'}</label>
                             <div class="col-md-7">
-<<<<<<< HEAD
-                                <input id="position" name="position" type="number" placeholder=""
-=======
                                 <input id="position" name="position" min="0" type="number" placeholder=""
->>>>>>> iframe
                                        class="form-control input-md" value="{$btn['position'|escape:'html':'UTF-8']}">
                                 <span class="help-block">{l s='if empty, the position will be automatic' mod='paygreen'}</span>
                             </div>
@@ -155,7 +140,6 @@
                             </div>
                         </div>
 
-<<<<<<< HEAD
                        <!-- Text input-->
                         <div class="form-group">
                             <label class="col-md-4 control-label" id="labelPerCentPayment"
@@ -184,8 +168,6 @@
                             </div>
                         </div>
 
-=======
->>>>>>> iframe
                         <!-- Select Basic -->
                         <div class="form-group">
                             <label class="col-md-4 control-label"
@@ -204,7 +186,6 @@
 
                         <!-- Text input-->
                         <div class="form-group">
-<<<<<<< HEAD
                             <label class="col-md-4 control-label" id="labelReductionPayment"
                                    for="ReductionPayment">{l s='Discount' mod='paygreen'}</label>
                             <div class="col-md-7">
@@ -218,27 +199,17 @@
 
                         <!-- Text input-->
                         <div class="form-group">
-=======
->>>>>>> iframe
                             <label class="col-md-4 control-label"
                                    for="nbPayment">{l s='Amount cart' mod='paygreen'}</label>
                             <div class="col-xs-5 col-md-3">
                                 <input id="minAmount" name="minAmount" type="number" placeholder=""
-<<<<<<< HEAD
-                                       class="form-control input-md"
-=======
                                        class="form-control input-md" min="0"
->>>>>>> iframe
                                        value="{if $btn['minAmount']>0}{$btn['minAmount'|escape:'html':'UTF-8']}{/if}">
                                 <span class="help-block">{l s='Minimum' mod='paygreen'}</span>
                             </div>
                             <div class="col-xs-2 col-md-1 text-center">{l s='to' mod='paygreen'}</div>
                             <div class="col-xs-5 col-md-3">
-<<<<<<< HEAD
-                                <input id="maxAmount" name="maxAmount" type="number" placeholder=""
-=======
                                 <input id="maxAmount" name="maxAmount" min="0" type="number" placeholder=""
->>>>>>> iframe
                                        class="form-control input-md"
                                        value="{if $btn['maxAmount']>0}{$btn['maxAmount'|escape:'html':'UTF-8']}{/if}">
                                 <span class="help-block">{l s='Maximum' mod='paygreen'}</span>

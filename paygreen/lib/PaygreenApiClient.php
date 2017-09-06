@@ -1,5 +1,4 @@
 <?php
-
 /**
 * 2014 - 2015 Watt Is It
 *
@@ -22,440 +21,31 @@
 * @author    PayGreen <contact@paygreen.fr>
 * @copyright 2014-2014 Watt It Is
 * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
-*  International Registered Trademark & Property of PrestaShop SA
+*  International Registered Trademark & Property of PrestaShop <SA></SA>
 *
 */
 
 class PaygreenApiClient
 {
+    private static $instance = null;
 
-    public static $UI ='';
-    public static $CP ='';
+    private $UI = '';
+    private $CP = '';
+    private $HOST = null;
 
-    public static $HOST = null;
-
-    public static function setIds($UI, $CP)
+    public static function getInstance($UI = '', $CP = '', $HOST = null)
     {
-        self::setUI($UI);
-        self::setCP($CP);
+        if (self::$instance === null) {
+            self::$instance = new PaygreenApiClient($UI, $CP, $HOST);
+        }
+        return (self::$instance);
     }
 
-    public static function setUI($UI)
+    private function __construct($UI, $CP, $HOST)
     {
-        self::$UI = $UI;
+        $this->IdsAreEmpty($UI, $CP);
+        $this->setHost($HOST);
     }
-
-    public static function setCP($CP)
-    {
-        self::$CP = $CP;
-    }
-
-    public static function setHost($host) {
-        if(empty($host)) {
-            $host = 'https://paygreen.fr';
-        }
-        self::$HOST = $host.'/api';
-    }
-
-    /**
-    * Return method and url by function
-    *
-    * @param $function
-    * @param datas
-    * @param $preprod
-    */
-    public static function getDatasByFunction($function, $datas = null)
-    {
-        $http = "Authorization: Bearer ".self::$CP;
-
-        switch($function){
-
-            case 'oAuth-access':
-            $datas = array(
-                'method' => 'POST',
-                'url' => self::getOAuthDeclareEndpoint(),
-                'http' => ''
-            );
-            break;
-
-            case 'validate-shop':
-            $datas = array(
-                'method' => 'PATCH',
-                'url' =>  self::getUrlProd().'/'.self::getUI().'/shop',
-                'http' => $http
-            );
-            break;
-
-            case 'refund':
-            if (empty($datas['pid'])) {
-                return false;
-            }
-
-            $datas = array(
-                'method' => 'DELETE',
-                'url' => self::getUrlProd().'/'.self::getUI().'/payins/transaction/'.$datas['pid'],
-                'http' => $http
-            );
-            break;
-
-            case 'get-datas':
-            if (empty($datas['pid'])) {
-                return false;
-            }
-
-            $datas = array(
-                'method' => 'GET',
-                'url' => self::getUrlProd().'/'.self::getUI().'/payins/transaction/'.$datas['pid'],
-                'http' => $http
-            );
-            break;
-
-            case 'are-valid-ids':
-            $datas = array(
-                'method' => 'GET',
-                'url' =>  self::getUrlProd().'/'.self::getUI(),
-                'http' => $http
-            );
-            break;
-
-            case 'get-data':
-            $datas = array(
-                'method' => 'GET',
-                'url' =>  self::getUrlProd().'/'.self::getUI().'/'.$datas['type'],
-                'http' => $http
-            );
-
-            break;
-
-            case 'validate-rounding':
-            $datas = array(
-                'method' => 'PATCH',
-                'url' =>  self::getUrlProd().'/'.self::getUI().'/solidarity/'.$datas['paymentToken'],
-                'http' => $http
-            );
-
-            break;
-
-            case 'get-rounding':
-            $datas = array(
-                'method' => 'GET',
-                'url' =>  self::getUrlProd().'/'.self::getUI().'/solidarity/'.$datas['paymentToken'],
-                'http' => $http
-            );
-
-            break;
-
-            case 'refund-rounding':
-            $datas = array(
-                'method' => 'DELETE',
-                'url' =>  self::getUrlProd().'/'.self::getUI().'/solidarity/'.$datas['paymentToken'],
-                'http' => $http
-            );
-
-            break;
-
-            case 'create-cash':
-                $datas = array(
-                    'method' => 'POST',
-                    'url' => self::getUrlProd().'/'.self::getUI().'/payins/transaction/cash',
-                    'http' => $http
-            );
-
-            break;
-
-            case 'create-xTime':
-            $datas = array(
-                'method' => 'POST',
-                'url' => self::getUrlProd().'/'.self::getUI().'/payins/transaction/xTime',
-                'http' => $http
-            );
-            break;
-
-            case 'create-subscription':
-            $datas = array(
-                'method' => 'POST',
-                'url' => self::getUrlProd().'/'.self::getUI().'/payins/transaction/subscription',
-                'http' => $http
-            );
-            break;
-
-            case 'create-Tokenize':
-            $datas = array(
-                'method' => 'POST',
-                'url' => self::getUrlProd().'/'.self::getUI().'/payins/transaction/tokenize',
-                'http' => $http
-            );
-            break;
-
-            case 'delivery':
-            $datas = array(
-                'method' => 'PUT',
-                'url' => self::getUrlProd().'/'.self::getUI().'/payins/transaction/'.$datas['pid'],
-                'http' => $http
-            );
-
-            break;
-            default:
-                return false;
-        }
-
-        return $datas;
-    }
-
-    /**
-    * Request to API paygreen
-    *
-    * @param $function function
-    * @param array $datas datas in JSON
-    * @return array JSON answer of request
-    */
-    public static function requestApi($function, $datas = null)
-    {
-        $datas_request = self::getDatasByFunction($function, $datas);
-        $content = '';
-        if (isset($datas['content'])) {
-            $content = json_encode($datas['content']);
-        }
-        if (extension_loaded('curl'))
-        {
-             $ch = curl_init();
-
-            curl_setopt_array($ch, array(
-                CURLOPT_URL => $datas_request['url'],
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_ENCODING => "",
-                CURLOPT_MAXREDIRS => 10,
-                CURLOPT_TIMEOUT => 30,
-                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                CURLOPT_CUSTOMREQUEST => $datas_request['method'],
-                CURLOPT_POSTFIELDS => $content,
-                CURLOPT_HTTPHEADER => array(
-                    "accept: application/json",
-                    $datas_request['http'],
-                    "cache-control: no-cache",
-                    "content-type: application/json",
-                    ),
-            ));
-            $page = curl_exec($ch);
-            curl_close($ch);
-        } else if(ini_get('allow_url_fopen')) {
-
-            $opts = array(
-                'http'=>array(
-                    'method'=>$datas_request['method'],
-                    'header'=>"Accept: application/json\r\n" .
-                    "Content-Type: application/json\r\n".
-                    $datas_request['http'],
-                    'content' => $content
-
-                )
-            );
-            $context = stream_context_create($opts);
-            $page = @file_get_contents($datas_request['url'], false, $context);
-        } else {
-            return (object)array('error' => 0);
-        }
-        if ($page === false) {
-             return (object)array('error' => 1);
-        }
-        return json_decode($page);
-
-    }
-
-    /**
-    * Get Status of the shop
-    * @param string $UI unique id
-    * @param string $CP private key
-    * @return string json datas
-    */
-    public static function getStatusShop($UI, $CP)
-    {
-        self::IdsAreEmpty($UI, $CP);
-        return self::requestApi('get-data', array('type'=>'shop'));
-    }
-
-    /**
-    * Check if the unique if contains prefix preprod : PP
-    * @param String $UI Unique Id
-    * @return String $UI Unique Id
-    */
-    public static function getUI(){
-        $UI = self::$UI;
-        if(substr(self::$UI, 0, 2) == 'PP'){
-            $UI =substr(self::$UI, 2);
-        }
-        return $UI;
-    }
-
-    public static function getTransactionInfo($UI, $CP, $pid) 
-    {
-        self::IdsAreEmpty($UI, $CP);
-        return self::requestApi('get-datas', array('pid' => $pid));
-    }
-
-    /**
-    * Get shop informations
-    * @param string $UI unique id
-    * @param string $CP private key
-    * @return string json datas
-    */
-    public static function getAccountInfos($UI, $CP){
-        self::IdsAreEmpty($UI, $CP);
-
-        $infosAccount = array();
-
-        $account = self::requestApi('get-data', array('type'=>'account'));
-        if(self::isContainsError($account)){
-            return $account->error;
-        }
-        if ($account==false) { return false; }
-        $infosAccount['siret'] = $account->data->siret;
-
-        $bank  = self::requestApi('get-data', array('type'=>'bank'));
-        if(self::isContainsError($bank)){
-            return $bank->error;
-        }
-        if ($bank==false) { return false; }
-        $infosAccount['IBAN']  = $bank->data->iban;
-
-        $shop = self::requestApi('get-data', array('type'=>'shop'));
-        if(self::isContainsError($bank)){
-            return $shop->error;
-        }
-        if ($shop==false) { return false; }
-        $infosAccount['url']   = $shop->data->url;
-
-        $infosAccount['valide'] = true;
-        foreach($infosAccount as $key => $info){
-            if(empty($info)){
-                $infosAccount['valide'] = false;
-            }
-        }
-
-        return $infosAccount;
-    }
-
-    /**
-    * Get rounding informations for $paiementToken
-    * @param string $UI unique id
-    * @param string $CP private key
-    * @param string $paiementToken paiementToken
-    * @return string json datas
-    */
-    public static function getRoundingInfo($UI, $CP, $paiementToken)
-    {
-        self::IdsAreEmpty($UI, $CP);
-        $transaction = self::requestApi('get-rounding', array('paymentToken' => $paiementToken));
-        if(self::isContainsError($transaction)){
-            return $transaction->error;
-        }
-        return $transaction;
-    }
-
-    public static function isContainsError($var){
-        if(isset($var->error)){
-            return true;
-        }
-        return false;
-    }
-
-    /**
-    * To validate the shop
-    *
-    * @param string $UI unique id
-    * @param string $CP private key
-    * @param int $activate 1 or 0 to active the account
-    * @return string json answer of false if activate != {0,1}
-    */
-    public static function validateShop($UI, $CP, $activate)
-    {
-        self::IdsAreEmpty($UI, $CP);
-        if($activate!=1 && $activate!=0){
-            return false;
-        }
-        $datas['content'] = array('activate'=>$activate);
-        return self::requestApi('validate-shop',$datas);
-    }
-
-    /**
-    * To check if private Key and Unique Id are valids
-    *
-    * @param string $UI unique id
-    * @param string $CP private key
-    * @return string json answer of false if activate != {0,1}
-    */
-    public static function validIdShop($UI, $CP)
-    {
-        self::IdsAreEmpty($UI, $CP);
-        $valid = self::requestApi('are-valid-ids', null);
-
-        if( $valid!=false ) {
-            if(isset($valid->error)){
-                return $valid;
-            }
-            if($valid->success==0) {
-                return false;
-            }
-            return true;
-        }
-        return false;
-    }
-
-    public static function validateRounding($UI, $CP, $datas)
-    {
-        self::IdsAreEmpty($UI, $CP);
-        $validate = self::requestApi('validate-rounding', $datas);
-
-        if(self::isContainsError($validate)){
-            return $validate->error;
-        }
-        return $validate;
-    }
-
-    public static function IdsAreEmpty($UI, $CP)
-    {
-        if(empty(self::$CP)){
-            self::setCP($CP);
-        }
-        if(empty(self::$UI)){
-            self::setUI($UI);
-        }
-    }
-
-    /**
-    * Refund an order
-    *
-    * @param string $UI unique id
-    * @param string $CP private key
-    * @param int $pid paygreen id of transaction
-    * @param float $amount amount of refund
-    * @return string json answer
-    */
-    public static function refundOrder($UI, $CP, $pid, $amount){
-        self::IdsAreEmpty($UI, $CP);
-        if(empty($pid)){
-            return false;
-        }
-
-        $datas = array('pid'=>$pid);
-        if ($amount!=null) {
-            $datas['content'] = array('amount'=>$amount*100);
-        }
-
-        return self::requestApi('refund', $datas);
-    }
-
-    public static function refundRounding($UI, $CP, $datas)
-    {
-        self::IdsAreEmpty($UI, $CP);
-        $refund = self::requestApi('refund-rounding', $datas);
-
-        if(self::isContainsError($refund)){
-            return $refund->error;
-        }
-        return $refund;
-    }
-
 
     /**
     * Authentication to server paygreen
@@ -465,9 +55,13 @@ class PaygreenApiClient
     * @param string $phone phone number, can be null
     * @param string $ipAdress ip Adress current, if null autodetect
     * @return string json datas
+    * 1
     */
-    public static function getOAuthServerAccess($email, $name, $phone = null, $ipAddress = null){
-        if (!isset($ipAddress)) { $ipAddress = $_SERVER['ADDR']; }
+    public static function getOAuthServerAccess($email, $name, $phone = null, $ipAddress = null)
+    {
+        if (!isset($ipAddress)) {
+            $ipAddress = $_SERVER['ADDR'];
+        }
         $subParam = array(
             "ipAddress" => $ipAddress,
             "email" => $email,
@@ -475,64 +69,423 @@ class PaygreenApiClient
         );
         $datas['content'] = $subParam ;
 
-        return self::requestApi('oAuth-access', $datas);
+        return self::$instance->requestApi('oAuth-access', $datas);
+    }
+
+    /**
+    * 3
+    * return url of Authorization
+    * @return string url of Authorization
+    */
+    public static function getOAuthAutorizeEndpoint()
+    {
+        return self::$instance->getUrlProd().'/auth/authorize';
+    }
+
+    /**
+    * 4
+    * return url of auth token
+    * @return string url of Authentication
+    */
+    public static function getOAuthTokenEndpoint()
+    {
+        return self::$instance->getUrlProd().'/auth/access_token';
+    }
+
+    /**
+    * return url of Authentication
+    * 2
+    * @return string url of Authentication
+    */
+    private static function getOAuthDeclareEndpoint()
+    {
+        return self::$instance->getUrlProd().'/auth';
+    }
+
+    public function getTransactionInfo($pid) 
+    {
+        return $this->requestApi('get-datas', array('pid' => $pid));
+    }
+
+    /**
+    * Get Status of the shop
+    * @return string json datas
+    */
+    public function getStatusShop()
+    {
+        return $this->requestApi('get-data', array('type'=>'shop'));
+    }
+
+    /**
+    * Refund an order
+    *
+    * @param int $pid paygreen id of transaction
+    * @param float $amount amount of refund
+    * @return string json answer
+    */
+    public function refundOrder($pid, $amount)
+    {
+        if (empty($pid)) {
+            return false;
+        }
+
+        $datas = array('pid' => $pid);
+        if ($amount != null) {
+            $datas['content'] = array('amount' => $amount * 100);
+        }
+
+        return $this->requestApi('refund', $datas);
+    }
+
+    /**
+    * To validate the shop
+    *
+    * @param int $activate 1 or 0 to active the account
+    * @return string json answer of false if activate != {0,1}
+    */
+    public function validateShop($activate)
+    {
+        if ($activate != 1 && $activate != 0) {
+            return false;
+        }
+        $datas['content'] = array('activate' => $activate);
+        return $this->requestApi('validate-shop', $datas);
+    }
+
+    /**
+    * To check if private Key and Unique Id are valids
+    *
+    * @return string json answer of false if activate != {0,1}
+    */
+    public function validIdShop()
+    {
+        $valid = $this->requestApi('are-valid-ids', null);
+
+        if ($valid != false) {
+            if (isset($valid->error)) {
+                return $valid;
+            }
+            if ($valid->success == 0) {
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+    * Get shop informations
+    * @return string json datas
+    */
+    public function getAccountInfos()
+    {
+        $infosAccount = array();
+
+        $account = $this->requestApi('get-data', array('type'=>'account'));
+        if ($this->isContainsError($account)) {
+            return $account->error;
+        }
+        if ($account == false) {
+            return false;
+        }
+        $infosAccount['siret'] = $account->data->siret;
+
+        $bank  = $this->requestApi('get-data', array('type' => 'bank'));
+        if ($this->isContainsError($bank)) {
+            return $bank->error;
+        }
+        if ($bank == false) {
+            return false;
+        }
+        $infosAccount['IBAN']  = $bank->data->iban;
+
+        $shop = $this->requestApi('get-data', array('type'=> 'shop'));
+        if ($this->isContainsError($bank)) {
+            return $shop->error;
+        }
+        if ($shop == false) {
+            return false;
+        }
+        $infosAccount['url'] = $shop->data->url;
+
+        $infosAccount['valide'] = true;
+        foreach ($infosAccount as $key => $info) {
+            if (empty($info)) {
+                $infosAccount['valide'] = false;
+            }
+        }
+        return $infosAccount;
+    }
+
+    public function validDeliveryPayment($pid)
+    {
+        return $this->requestApi('delivery', array('pid' => $pid));
+    }
+
+    public function createCash($data)
+    {
+        return $this->requestApi('create-cash', $data);
+    }
+
+    public function createXTime($data)
+    {
+        return $this->requestApi('create-xtime', $data);
+    }
+
+    public function createSubscription($data)
+    {
+        return $this->requestApi('create-subscription', $data);
+    }
+
+    public function createTokenize($data)
+    {
+        return $this->requestApi('create-tokenize', $data);
+    }
+
+    /************************************************************
+                        Private functions
+    ************************************************************/
+
+    /**
+    * Check if the unique if contains prefix preprod : PP
+    * @return string $UI Unique Id
+    */
+    private function getUI()
+    {
+        $UI = $this->UI;
+        if (substr($this->UI, 0, 2) == 'PP') {
+            $UI = substr($this->UI, 2);
+        }
+        return $UI;
     }
 
     /**
     * Return url of preprod or prod
     * @return string url
     */
-    public static function getUrlProd() {
-        return self::$HOST;
-    }
-
-    /**
-    * return url of Authentication
-    * @return string url of Authentication
-    */
-    public static function getOAuthDeclareEndpoint(){
-        return self::getUrlProd().'/auth';
-    }
-
-    /**
-    * return url of Authorization
-    * @return string url of Authorization
-    */
-    public static function getOAuthAutorizeEndpoint(){
-        return self::getUrlProd().'/auth/authorize';
-    }
-
-    /**
-    * return url of auth token
-    * @return string url of Authentication
-    */
-    public static function getOAuthTokenEndpoint(){
-        return self::getUrlProd().'/auth/access_token';
-    }
-
-    public static function validDeliveryPayment($UI, $CP, $pid) 
+    private function getUrlProd()
     {
-        self::IdsAreEmpty($UI, $CP);
-        return self::requestApi('delivery', array('pid' => $pid));
+        return $this->HOST;
     }
 
-    public static function createCash($UI, $CP, $data) {
-        self::IdsAreEmpty($UI, $CP);
-        return self::requestApi('create-cash', $data);
+    /**
+    * Check if error is defined in object
+    * @param object $var
+    * @return boolean
+    */
+    private function isContainsError($var)
+    {
+        if (isset($var->error)) {
+            return true;
+        }
+        return false;
     }
 
-    public static function createXTime($UI, $CP, $data) {
-        self::IdsAreEmpty($UI, $CP);
-        return self::requestApi('create-xTime', $data);
+    /**
+    * Check if UI and CP are empty and set them
+    * @param string $UI
+    * @param string $CP
+    */
+    private function IdsAreEmpty($UI, $CP)
+    {
+        if (empty($this->CP)) {
+            $this->CP = $CP;
+        }
+        if (empty($this->UI)) {
+            $this->UI = $UI;
+        }
     }
 
-    public static function createSubscription($UI, $CP, $data) {
-        self::IdsAreEmpty($UI, $CP);
-        return self::requestApi('create-subscription', $data);
+    /**
+    * Set $host if empty
+    * @param string $host
+    */
+    private function setHost($host = null)
+    {
+        if (empty($host)) {
+            $host = 'https://paygreen.fr';
+        }
+        $this->HOST = $host.'/api';
     }
 
-    public static function createTokenize($UI, $CP, $data) {
-        self::IdsAreEmpty($UI, $CP);
-        return self::requestApi('create-Tokenize', $data);
+    /**
+    * Return method and url by function name
+    *
+    * @param string $function
+    * @param array $datas
+    * @return object page
+    */
+    private function requestApi($function, $datas = null)
+    {
+        $http           = "Authorization: Bearer ".$this->CP;
+
+        $lowerName      = strtolower($function);
+        $function_name  = str_replace('-', '_', $lowerName);
+        $datas_request  = $this->$function_name($datas, $http);
+        
+        $content        = '';
+        if (isset($datas['content'])) {
+            $content = json_encode($datas['content']);
+        }
+        if (extension_loaded('curl')) {
+            $page = $this->request_api_curl($datas_request, $content);
+        } elseif (ini_get('allow_url_fopen')) {
+            $page = $this->request_api_fopen($datas_request, $content);
+        } else {
+            return ((object)array('error' => 0));
+        }
+        if ($page === false) {
+            return ((object)array('error' => 1));
+        }
+        return json_decode($page);
+    }
+
+    private function request_api_curl($datas_request, $content)
+    {
+        $ch = curl_init();
+        curl_setopt_array($ch, array(
+            // CURLOPT_SSL_VERIFYPEER => false,
+            // CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_URL => $datas_request['url'],
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => $datas_request['method'],
+            CURLOPT_POSTFIELDS => $content,
+            CURLOPT_HTTPHEADER => array(
+                "accept: application/json",
+                $datas_request['http'],
+                "cache-control: no-cache",
+                "content-type: application/json",
+                ),
+        ));
+        $page = curl_exec($ch);
+        curl_close($ch);
+        return ($page);
+    }
+
+    private function request_api_fopen($datas_request, $content)
+    {
+        $opts = array(
+            'http' => array(
+                'method'    =>  $datas_request['method'],
+                'header'    =>  "Accept: application/json\r\n" .
+                "Content-Type: application/json\r\n".
+                $datas_request['http'],
+                'content'   =>  $content
+            )
+        );
+        $context = stream_context_create($opts);
+        $page = @file_get_contents($datas_request['url'], false, $context);
+        return ($page);
+    }
+
+    /************************************************************
+                Private functions called by requestApi
+    ************************************************************/
+    private function oauth_access($datas, $http)
+    {
+        return ($data = array(
+            'method'    =>  'POST',
+            'url'       =>  self::getOAuthDeclareEndpoint(),
+            'http'      =>  ''
+        ));
+    }
+
+    private function validate_shop($datas, $http)
+    {
+        return ($data = array (
+            'method'    =>  'PATCH',
+            'url'       =>  $this->getUrlProd().'/'.$this->getUI().'/shop',
+            'http'      =>  $http
+        ));
+    }
+
+    private function refund($datas, $http)
+    {
+        if (empty($datas['pid'])) {
+            return (false);
+        }
+        return ($data = array (
+            'method'    =>  'DELETE',
+            'url'       =>  $this->getUrlProd().'/'.$this->getUI().'/payins/transaction/'.$datas['pid'],
+            'http'      =>  $http
+        ));
+    }
+
+    private function are_valid_ids($datas, $http)
+    {
+        return ($data = array(
+            'method'    =>  'GET',
+            'url'       =>  $this->getUrlProd().'/'.$this->getUI(),
+            'http'      =>  $http
+        ));
+    }
+
+    private function get_data($datas, $http)
+    {
+        return ($data = array (
+            'method'    =>  'GET',
+            'url'       =>  $this->getUrlProd().'/'.$this->getUI().'/'.$datas['type'],
+            'http'      =>  $http
+        ));
+    }
+
+    private function delivery($datas, $http)
+    {
+        return ($data = array(
+            'method'    =>  'PUT',
+            'url'       =>  $this->getUrlProd().'/'.$this->getUI().'/payins/transaction/'.$datas['pid'],
+            'http'      =>  $http
+        ));
+    }
+
+    private function create_cash($datas, $http)
+    {
+        return ($data = array(
+            'method'    =>  'POST',
+            'url'       =>  $this->getUrlProd().'/'.$this->getUI().'/payins/transaction/cash',
+            'http'      =>  $http
+        ));
+    }
+
+    private function create_subscription($datas, $http)
+    {
+        return ($data = array(
+            'method'    =>  'POST',
+            'url'       =>  $this->getUrlProd().'/'.$this->getUI().'/payins/transaction/subscription',
+            'http'      =>  $http
+        ));
+    }
+
+    private function create_tokenize($datas, $http)
+    {
+        return ($data = array(
+            'method'    =>  'POST',
+            'url'       =>  $this->getUrlProd().'/'.$this->getUI().'/payins/transaction/tokenize',
+            'http'      =>  $http
+        ));
+    }
+
+    private function create_xtime($datas, $http)
+    {
+        return ($data = array(
+            'method'    =>  'POST',
+            'url'       =>  $this->getUrlProd().'/'.$this->getUI().'/payins/transaction/xTime',
+            'http'      =>  $http
+        ));
+    }
+
+    private function get_datas($datas, $http) {
+        if (empty($datas['pid'])) {
+            return false;
+        }
+        return ($data = array(
+            'method'    =>  'GET',
+            'url'       =>  $this->getUrlProd().'/'.$this->getUI().'/payins/transaction/'.$datas['pid'],
+            'http'      =>  $http
+        ));
     }
 }

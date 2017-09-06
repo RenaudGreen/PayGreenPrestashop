@@ -33,7 +33,7 @@
             <div class="col-lg-4 col-md-6 col-sm-12 col-xs-12 text-center ">
                 <div class="margin-top-10 hidden-xs"></div>
 
-                <h2><img class="img-responsive center-block" src="{$imgdir|escape:'html':'UTF-8'}paygreen-green.png" style="max-height:50px;"/></h2/>
+                <h2><img class="img-responsive center-block" src="{$imgdir|escape:'html':'UTF-8'}paygreen.png" style="max-height:50px;"/></h2/>
 
                     {if $connected == false}
                     <a href="{$urlBase|escape:'html':'UTF-8'}" class="btn btn-lg btn-default text-success" role="button">{l s='Log in' mod='paygreen'}</a>

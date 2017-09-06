@@ -26,25 +26,18 @@
 <script src="modules/paygreen/views/js/1.7/jquery-1.12.3.min.js" type="text/javascript"></script>
 
 <link rel="stylesheet" href="modules/paygreen/views/css/1.7/normalize.css" />
-<link rel="stylesheet" href="modules/paygreen/views/css/1.7/ion.rangeSlider.css" />
-<link rel="stylesheet" href="modules/paygreen/views/css/1.7/ion.rangeSlider.skinFlat.css" />
 <link rel="stylesheet" href="modules/paygreen/views/css/1.7/paygreenInsites.css" />
 <script type="text/javascript" id="plugin{$id|escape:'html':'UTF-8'}">
 	{literal}
 	$(document).ready(function() {
-		{/literal} 
+		{/literal}
+		console.log('hello insite');
     	$('#checkout'{literal}).paygreenInsites(
     		{
     			"id" :{/literal} {$id|escape:'html':'UTF-8'},
     			"amount": {$amount|escape:'html':'UTF-8'},
                 "url":"{$url|escape:'html':'UTF-8'}",
     			{literal}
-    			"asso": [
-    				{"associationId": "1", "name": "Asso6", "imageUrl": "http://localhost:8017/modules/paygreen/views/img/icons/association1.jpg"},
-    				{"associationId": "2", "name": "eeeeeeeeeeeeeeeeeeeeeeeeee", "imageUrl": "http://localhost:8017/modules/paygreen/views/img/icons/association2.jpg"},
-    				{"associationId": "3", "name": "La Croix Rouge", "imageUrl": "http://localhost:8017/modules/paygreen/views/img/icons/association3.jpg"}
-    			],
-    			"module": "prestashop"
     		}
     	); 
 	});
