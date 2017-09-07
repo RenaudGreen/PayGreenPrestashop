@@ -30,14 +30,14 @@
 <script type="text/javascript" id="plugin{$id|escape:'html':'UTF-8'}">
 	{literal}
 	$(document).ready(function() {
-		{/literal}
-		console.log('hello insite');
+		{/literal} 
     	$('#checkout'{literal}).paygreenInsites(
     		{
     			"id" :{/literal} {$id|escape:'html':'UTF-8'},
     			"amount": {$amount|escape:'html':'UTF-8'},
                 "url":"{$url|escape:'html':'UTF-8'}",
     			{literal}
+    			"module": "prestashop"
     		}
     	); 
 	});

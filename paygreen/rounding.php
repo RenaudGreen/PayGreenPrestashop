@@ -28,30 +28,29 @@ require_once implode(DIRECTORY_SEPARATOR, array(dirname(__FILE__), '..', '..', '
 require_once implode(DIRECTORY_SEPARATOR, array(dirname(__FILE__), '..', '..', 'init.php'));
 require_once implode(DIRECTORY_SEPARATOR, array(dirname(__FILE__), 'paygreen.php'));
 $o_paygreen = new Paygreen();
-$client = $o_paygreen->getCaller();
-$pac = new PaygreenApiClient();
-$ui = $o_paygreen->getUniqueIdPP();
-$cp = Configuration::get($o_paygreen::_CONFIG_PRIVATE_KEY);
+$conf = $o_paygreen->getPaygreenConfig();
+$PAC = PaygreenApiClient::getInstance($conf['token'], $conf['privateKey'], $conf['host']);
+
 if (preg_match("#^[0-9a-z]{32}$#", Tools::getValue('paiementToken'))) {
     $datas = array(
         'paymentToken' => Tools::getValue('paiementToken'),
     );
     if (Tools::getValue('getInfo') == true) {
-        $result = $pac->getTransactionInfo($ui, $cp, Tools::getValue('paiementToken'));
+        $result = $PAC->getTransactionInfo(Tools::getValue('paiementToken'));
         echo $result->success;
-    } elseif (Tools::getValue('getRounding') == true) {
-         $result = $pac->getRoundingInfo($ui, $cp, Tools::getValue('paiementToken'));
+    } else if (Tools::getValue('getRounding') == true) {
+         $result = $PAC->getRoundingInfo(Tools::getValue('paiementToken'));
         echo json_encode($result);
-    } elseif (Tools::getValue('cancelRounding') == true) {
-        $result = $pac->refundRounding($ui, $cp, $datas);
+    } else if (Tools::getValue('cancelRounding') == true) {
+        $result = $PAC->refundRounding($datas);
         echo json_encode($result);
-    } elseif (Tools::getValue('associationId') > 0 && Tools::getValue('amount') > 0) {
+    } else if (Tools::getValue('associationId') > 0 && Tools::getValue('amount') > 0) {
         $datas['content'] = array(
             "associationId" => Tools::getValue('associationId'),
             "type" => "rounding",
             "amount" => Tools::getValue('amount') * 100
         );
-        $result = $pac->validateRounding($ui, $cp, $datas);
+        $result = $PAC->validateRounding($datas);
         echo json_encode($result);
     } else {
         echo '{"success":false,"message":"requestApi"}';

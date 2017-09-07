@@ -137,7 +137,7 @@ class PaygreenApiClient
         return $this->requestApi('refund', $datas);
     }
 
-    public static function sendFingerprintDatas($data) {
+    public function sendFingerprintDatas($data) {
         $datas['content'] = $data;
         return $this->requestApi('send-ccarbone', $datas);
     }
@@ -212,7 +212,9 @@ class PaygreenApiClient
             return false;
         }
         $infosAccount['url'] = $shop->data->url;
-
+        $infosAccount['modules'] = $shop->data->modules;
+        $infosAccount['solidarityType'] = $shop->data->extra->solidarityType;
+        
         $infosAccount['valide'] = true;
         foreach ($infosAccount as $key => $info) {
             if (empty($info)) {
@@ -220,6 +222,42 @@ class PaygreenApiClient
             }
         }
         return $infosAccount;
+    }
+
+    /**
+    * Get rounding informations for $paiementToken
+    * @param string $UI unique id
+    * @param string $CP private key
+    * @param string $paiementToken paiementToken
+    * @return string json datas
+    */
+    public function getRoundingInfo($paiementToken)
+    {
+        $transaction = $this->requestApi(
+            'get-rounding', array('paymentToken' => $paiementToken)
+        );
+        if($this->isContainsError($transaction)){
+            return $transaction->error;
+        }
+        return $transaction;
+    }
+
+    public function validateRounding($datas)
+    {
+        $validate = self::requestApi('validate-rounding', $datas);
+        if ($this->isContainsError($validate)){
+            return $validate->error;
+        }
+        return $validate;
+    }
+
+    public function refundRounding($datas)
+    {
+        $refund = $this->requestApi('refund-rounding', $datas);
+        if($this->isContainsError($refund)){
+            return $refund->error;
+        }
+        return $refund;
     }
 
     public function validDeliveryPayment($pid)
@@ -494,10 +532,34 @@ class PaygreenApiClient
         ));
     }
 
+    private function get_rounding($datas, $http) {
+        return ($data = array(
+            'method' => 'GET',
+            'url' =>  $this->getUrlProd().'/'.$this->getUI().'/solidarity/'.$datas['paymentToken'],
+            'http' => $http
+        ));
+    }
+
+    private function validate_rounding($datas, $http) {
+        return ($data = array(
+            'method' => 'PATCH',
+            'url' =>  $this->getUrlProd().'/'.$this->getUI().'/solidarity/'.$datas['paymentToken'],
+            'http' => $http
+        ));
+}
+
+    private function refund_rounding($datas, $http) {
+        return ($data = array(
+            'method' => 'DELETE',
+            'url' =>  $this->getUrlProd().'/'.$this->getUI().'/solidarity/'.$datas['paymentToken'],
+            'http' => $http
+        ));
+    }
+
     private function send_ccarbone($datas, $http) {
         return ($data = array(
             'method' => 'POST',
-            'url' => self::getUrlProd().'/'.self::getUI().'/payins/ccarbone',
+            'url' => $this->getUrlProd().'/'.$this->getUI().'/payins/ccarbone',
             'http' => $http
         ));
     }    
