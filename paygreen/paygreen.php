@@ -206,6 +206,7 @@ class Paygreen extends PaymentModule
         $this->createOrderStatuses();
 
         $this->initializePaygreenApiClient();
+        $this->checkButtons();
     }
 
     /**
@@ -1748,8 +1749,11 @@ class Paygreen extends PaymentModule
                     if ($idBtn == $btn['id']) {
                         $paymentInfo = PaygreenApiClient::getInstance()->getTransactionInfo($pid);
                         if ($paymentInfo->success && $paymentInfo->data->result->status == 'PENDING') {
+                            // if (isset($paymentInfo->data->idFingerprint)) {
+                            //     $ccarbone = PaygreenApiClient::getInstance()->getCCarboneDetails($paymentInfo->data->idFingerprint);
+                            // }
                             $iFrame->setAdditionalInformation(
-                                $this->generateIframeForm($btn['id'], $totalCart, $paymentInfo)
+                                $this->generateIframeForm($btn['id'], $totalCart, $paymentInfo, null)
                             );
                         } else {
                             $o_cart = new Cart($paymentInfo->data->metadata->cart_id);
@@ -1834,11 +1838,14 @@ class Paygreen extends PaymentModule
             $address->city,
             $address->country
         );
-        $carbon = $this->generateFingerprintDatas();
-        if ($carbon != null) {
-            if (isset($carbon->data) && $carbon->data->idFingerprint > 0 &&
-                $carbon->data->estimatedCarbon > 0 && $carbon->data->estimatedPrice > 0) {
-                $paiement->idFingerprint = $carbon->data->idFingerprint;
+        $shopInfo = PaygreenApiClient::getInstance()->getAccountInfos();
+        $carbon = null;
+        if ($shopInfo['solidarityType'] == 'CCARBONE') {
+            $carbon = $this->generateFingerprintDatas();
+        }
+        if (!empty($carbon) && $carbon != false) {
+            if (isset($carbon->data) && $carbon->data->idFingerprint) {
+                $paiement->fingerprint($carbon->data->idFingerprint);
             }
         }
         return $paiement;
@@ -1893,6 +1900,7 @@ class Paygreen extends PaymentModule
                     "firstName" => $a_paiement->customer_first_name,
                     "email" => $a_paiement->customer_email,
                 ),
+                "idFingerprint" => !empty($a_paiement->idFingerprint) ? $a_paiement->idFingerprint : null
             )
         );
         $result = PaygreenApiClient::getInstance()->createCash($data);
@@ -1919,6 +1927,7 @@ class Paygreen extends PaymentModule
                     "firstName" => $a_paiement->customer_first_name,
                     "email" => $a_paiement->customer_email,
                 ),
+                "idFingerprint" => !empty($a_paiement->idFingerprint) ? $a_paiement->idFingerprint : null
             )
         );
         $result = PaygreenApiClient::getInstance()->createTokenize($data);
@@ -1949,7 +1958,8 @@ class Paygreen extends PaymentModule
                 "orderDetails" => array(
                     "cycle" => $a_paiement->reccuringMode,
                     "count" => $a_paiement->reccuringDueCount
-                )
+                ),
+                "idFingerprint" => !empty($a_paiement->idFingerprint) ? $a_paiement->idFingerprint : null
             )
         );
         $result = PaygreenApiClient::getInstance()->createXTime($data);
@@ -1981,7 +1991,8 @@ class Paygreen extends PaymentModule
                     "cycle" => $a_paiement->reccuringMode,
                     "count" => $a_paiement->reccuringDueCount,
                     "recurringStartAt" => $a_paiement->reccuringStartAt
-                )
+                ),
+                "idFingerprint" => !empty($a_paiement->idFingerprint) ? $a_paiement->idFingerprint : null
             )
         );
         $this->log('data', $data);
@@ -2013,12 +2024,16 @@ class Paygreen extends PaymentModule
     /**
      * display PaygreenInsite Form.
      */
-    protected function generateIframeForm($id, $totalCart, $payment)
+    protected function generateIframeForm($id, $totalCart, $payment, $ccarbone = null)
     {
+        $carbon = '9.64';
+        $price = '0.75';
         $this->context->smarty->assign(array(
-            'id' => $id,
-            'amount' => $totalCart,
-            'url' => $payment->data->url . '?ref=prestashop&display=insite',
+            'id'        =>  $id,
+            'amount'    =>  $totalCart,
+            'url'       =>  $payment->data->url . '?ref=prestashop&display=insite',
+            'carbon'    =>  $carbon,
+            'cPrice'    =>  $price
         ));
 
         return $this->context->smarty->fetch(
@@ -2777,19 +2792,21 @@ class Paygreen extends PaymentModule
         }
         $reduction = $btn['reductionPayment'];
 
-        // TODO
-        // VERIFICATION MODULE INSITE ACTIF OU NON
-        
-        // $version = Tools::substr(_PS_VERSION_, 0, 3);
-        // if ($version > 1.6) {
-        //     $integration = $btn['integration'];
-        //     $shopInfo = PaygreenApiClient::getInstance()->getAccountInfos();
-        //     if ($shopInfo['modules'][0]->name == 'InSite' &&
-        //     $shopInfo['modules'][0]->enable != 1 &&
-        //     $btn['integration'] == self::BUTTON_IFRAME) {
-        //         $error .= $this->l('iFrame payment is only available with the Premium Pack');
-        //     }
-        // }
+        $version = Tools::substr(_PS_VERSION_, 0, 3);
+        if ($version > 1.6) {
+            $integration = $btn['integration'];
+            if ($btn['integration'] == self::BUTTON_IFRAME) {
+                $shopInfo = PaygreenApiClient::getInstance()->getAccountInfos();
+                if (!empty($shopInfo['modules'])) {
+                    foreach ($shopInfo['modules'] as $module) {
+                        if (isset($module->name) && $module->name == 'InSite' &&
+                            isset($module->enable) && $module->enable != 1) {
+                                $error .= $this->l('iFrame payment is only available with the Premium Pack');                                
+                            }
+                    }
+                }
+            }
+        }
         if ($nbPayment > 1) {
             // Cash payment
             if ($type == self::CASH_PAYMENT) {
@@ -3049,18 +3066,14 @@ class Paygreen extends PaymentModule
         $fp_datas = $this->getFingerprintDatas($fp_fingerprint);
         $pageDatas = $this->countPageDatas($fp_datas);
         $packageWeight = $this->context->cart->getTotalWeight();
-        $newPackageWeight = 0;
         $products = $this->context->cart->getProducts(true);
 
         foreach ($products as $product) {
             if ($product['weight'] == 0) {
-                $newPackageWeight = 5;
-                break;
+                $packageWeight += 1;
             }
         }
-        if ($packageWeight < $newPackageWeight) {
-            $packageWeight = $newPackageWeight;
-        }
+
         $fp_obj['deviceType'] = (string)$pageDatas['device'];
         $fp_obj['browser'] = (string)$pageDatas['browser'];
         $fp_obj['nbPage'] = (int)$pageDatas['nbPage'];
@@ -3073,8 +3086,6 @@ class Paygreen extends PaymentModule
         $fp_obj['clientAddress'] = (string)$buyerAddress->address1.','.$buyerAddress->postcode.','.$buyerAddress->city.','.$buyerAddress->country;
         $fp_obj['shopKey'] = (string)Configuration::get($this::_CONFIG_PRIVATE_KEY);
         
-        // var_dump($fp_obj);
-
         foreach ($fp_obj as $key => $value) {
             if (empty($value)) {
                 $this->log('generateFingerprintDatas error in value', null);

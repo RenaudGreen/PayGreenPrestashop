@@ -206,6 +206,10 @@ class PaygreenClient
         return $this;
     }
 
+    public function fingerprint($id) {
+        $this->idFingerprint = $id;
+    }
+
     public function cardPrint()
     {
         $this->mode = (isset($this->data['amount']) && $this->data['amount']) > 0? self::MODE_TOKENIZE: self::MODE_CARDPRINT;

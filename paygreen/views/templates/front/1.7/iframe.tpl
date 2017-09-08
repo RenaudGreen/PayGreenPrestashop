@@ -24,9 +24,7 @@
 *
 *}
 <script src="modules/paygreen/views/js/1.7/jquery-1.12.3.min.js" type="text/javascript"></script>
-
 <link rel="stylesheet" href="modules/paygreen/views/css/1.7/normalize.css" />
-<link rel="stylesheet" href="modules/paygreen/views/css/1.7/paygreenInsites.css" />
 <script type="text/javascript" id="plugin{$id|escape:'html':'UTF-8'}">
 	{literal}
 	$(document).ready(function() {
@@ -36,6 +34,8 @@
     			"id" :{/literal} {$id|escape:'html':'UTF-8'},
     			"amount": {$amount|escape:'html':'UTF-8'},
                 "url":"{$url|escape:'html':'UTF-8'}",
+				"carbonQt":{$carbon},
+				"carbonPrice":{$cPrice},
     			{literal}
     			"module": "prestashop"
     		}
