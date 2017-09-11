@@ -34,8 +34,9 @@
     			"id" :{/literal} {$id|escape:'html':'UTF-8'},
     			"amount": {$amount|escape:'html':'UTF-8'},
                 "url":"{$url|escape:'html':'UTF-8'}",
-				"carbonQt":{$carbon},
-				"carbonPrice":{$cPrice},
+				"carbonQt":{$carbonQt|escape:'html':'UTF-8'},
+				"carbonPrice":{$carbonPrice|escape:'html':'UTF-8'},
+				"solidarityType":"{$solidarityType|escape:'html':'UTF-8'}",
     			{literal}
     			"module": "prestashop"
     		}

@@ -206,8 +206,10 @@ class PaygreenClient
         return $this;
     }
 
-    public function fingerprint($id) {
-        $this->idFingerprint = $id;
+    public function fingerprint($data) {
+        $this->idFingerprint = $data->idFingerprint;
+        $this->ccarbonePrice = $data->estimatedPrice;
+        $this->ccarboneQt    = $data->estimatedCarbon;
     }
 
     public function cardPrint()

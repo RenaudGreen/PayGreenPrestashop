@@ -1749,11 +1749,12 @@ class Paygreen extends PaymentModule
                     if ($idBtn == $btn['id']) {
                         $paymentInfo = PaygreenApiClient::getInstance()->getTransactionInfo($pid);
                         if ($paymentInfo->success && $paymentInfo->data->result->status == 'PENDING') {
-                            // if (isset($paymentInfo->data->idFingerprint)) {
-                            //     $ccarbone = PaygreenApiClient::getInstance()->getCCarboneDetails($paymentInfo->data->idFingerprint);
-                            // }
+                            if (isset($paymentInfo->data->idFingerprint)) {
+                                $ccarbone = PaygreenApiClient::getInstance()->sendFingerprintDatas(array('paygreenInsite' => true, 'idFingerprint' => $paymentInfo->data->idFingerprint));
+                                ($ccarbone && $ccarbone->success != false) ? $carbon = $ccarbone->data : $carbon = null;
+                            }
                             $iFrame->setAdditionalInformation(
-                                $this->generateIframeForm($btn['id'], $totalCart, $paymentInfo, null)
+                                $this->generateIframeForm($btn['id'], $totalCart, $paymentInfo, $carbon)
                             );
                         } else {
                             $o_cart = new Cart($paymentInfo->data->metadata->cart_id);
@@ -1845,7 +1846,7 @@ class Paygreen extends PaymentModule
         }
         if (!empty($carbon) && $carbon != false) {
             if (isset($carbon->data) && $carbon->data->idFingerprint) {
-                $paiement->fingerprint($carbon->data->idFingerprint);
+                $paiement->fingerprint($carbon->data);
             }
         }
         return $paiement;
@@ -2026,14 +2027,23 @@ class Paygreen extends PaymentModule
      */
     protected function generateIframeForm($id, $totalCart, $payment, $ccarbone = null)
     {
-        $carbon = '9.64';
-        $price = '0.75';
+        if ($ccarbone != null) {
+            $carbon = $ccarbone->estimatedCarbon;
+            $price = $ccarbone->estimatedPrice;
+            $solidarityType = 'CCARBONE';
+        } else {
+            $carbon = 0;
+            $price = 0;
+            $solidarityType = 'ROUNDING';
+        }
+        $ccarbone != null ? $price = $ccarbone->estimatedPrice : $price = 0;
         $this->context->smarty->assign(array(
-            'id'        =>  $id,
-            'amount'    =>  $totalCart,
-            'url'       =>  $payment->data->url . '?ref=prestashop&display=insite',
-            'carbon'    =>  $carbon,
-            'cPrice'    =>  $price
+            'id'                =>  $id,
+            'amount'            =>  $totalCart,
+            'url'               =>  $payment->data->url . '?ref=prestashop&display=insite',
+            'carbonQt'          =>  $carbon,
+            'carbonPrice'       =>  $price,
+            'solidarityType'    =>  $solidarityType
         ));
 
         return $this->context->smarty->fetch(

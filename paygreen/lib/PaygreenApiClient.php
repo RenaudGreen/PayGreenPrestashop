@@ -231,11 +231,10 @@ class PaygreenApiClient
     * @param string $paiementToken paiementToken
     * @return string json datas
     */
-    public function getRoundingInfo($paiementToken)
+    public function getRoundingInfo($datas)
     {
-        $transaction = $this->requestApi(
-            'get-rounding', array('paymentToken' => $paiementToken)
-        );
+        file_put_contents('getroundinginfo.json', json_encode($datas), FILE_APPEND);
+        $transaction = $this->requestApi('get-rounding', $datas);
         if($this->isContainsError($transaction)){
             return $transaction->error;
         }
@@ -244,7 +243,8 @@ class PaygreenApiClient
 
     public function validateRounding($datas)
     {
-        $validate = self::requestApi('validate-rounding', $datas);
+        file_put_contents('validaterounding.json', json_encode($datas), FILE_APPEND);
+        $validate = $this->requestApi('validate-rounding', $datas);
         if ($this->isContainsError($validate)){
             return $validate->error;
         }
@@ -253,8 +253,10 @@ class PaygreenApiClient
 
     public function refundRounding($datas)
     {
+        file_put_contents('refundrounding.json', json_encode($datas), FILE_APPEND);
+        $datas['content'] = array('paymentToken' => $datas['paymentToken']);
         $refund = $this->requestApi('refund-rounding', $datas);
-        if($this->isContainsError($refund)){
+        if ($this->isContainsError($refund)){
             return $refund->error;
         }
         return $refund;
@@ -365,7 +367,6 @@ class PaygreenApiClient
         $lowerName      = strtolower($function);
         $function_name  = str_replace('-', '_', $lowerName);
         $datas_request  = $this->$function_name($datas, $http);
-        
         $content        = '';
         if (isset($datas['content'])) {
             $content = json_encode($datas['content']);
@@ -534,25 +535,25 @@ class PaygreenApiClient
 
     private function get_rounding($datas, $http) {
         return ($data = array(
-            'method' => 'GET',
-            'url' =>  $this->getUrlProd().'/'.$this->getUI().'/solidarity/'.$datas['paymentToken'],
-            'http' => $http
+            'method'    =>  'GET',
+            'url'       =>  $this->getUrlProd().'/'.$this->getUI().'/solidarity/'.$datas['paymentToken'],
+            'http'      =>  $http
         ));
     }
 
     private function validate_rounding($datas, $http) {
         return ($data = array(
-            'method' => 'PATCH',
-            'url' =>  $this->getUrlProd().'/'.$this->getUI().'/solidarity/'.$datas['paymentToken'],
-            'http' => $http
+            'method'    =>  'PATCH',
+            'url'       =>  $this->getUrlProd().'/'.$this->getUI().'/solidarity/'.$datas['paymentToken'],
+            'http'      =>  $http
         ));
 }
 
     private function refund_rounding($datas, $http) {
         return ($data = array(
-            'method' => 'DELETE',
-            'url' =>  $this->getUrlProd().'/'.$this->getUI().'/solidarity/'.$datas['paymentToken'],
-            'http' => $http
+            'method'    =>  'DELETE',
+            'url'       =>  $this->getUrlProd().'/'.$this->getUI().'/solidarity/'.$datas['paymentToken'],
+            'http'      =>  $http
         ));
     }
 
@@ -562,5 +563,5 @@ class PaygreenApiClient
             'url' => $this->getUrlProd().'/'.$this->getUI().'/payins/ccarbone',
             'http' => $http
         ));
-    }    
+    }
 }
