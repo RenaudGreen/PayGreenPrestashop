@@ -1754,7 +1754,7 @@ class Paygreen extends PaymentModule
                                 ($ccarbone && $ccarbone->success != false) ? $carbon = $ccarbone->data : $carbon = null;
                             }
                             $iFrame->setAdditionalInformation(
-                                $this->generateIframeForm($btn['id'], $totalCart, $paymentInfo, $carbon)
+                                $this->generateIframeForm($btn['id'], $totalCart, $paymentInfo, $carbon, $paiement->toArray())
                             );
                         } else {
                             $o_cart = new Cart($paymentInfo->data->metadata->cart_id);
@@ -1840,6 +1840,7 @@ class Paygreen extends PaymentModule
             $address->country
         );
         $shopInfo = PaygreenApiClient::getInstance()->getAccountInfos();
+        $paiement->solidarityType = $shopInfo['solidarityType'];
         $carbon = null;
         if ($shopInfo['solidarityType'] == 'CCARBONE') {
             $carbon = $this->generateFingerprintDatas();
@@ -2025,16 +2026,15 @@ class Paygreen extends PaymentModule
     /**
      * display PaygreenInsite Form.
      */
-    protected function generateIframeForm($id, $totalCart, $payment, $ccarbone = null)
+    protected function generateIframeForm($id, $totalCart, $payment, $ccarbone = null, $paiement = null)
     {
         if ($ccarbone != null) {
             $carbon = $ccarbone->estimatedCarbon;
             $price = $ccarbone->estimatedPrice;
-            $solidarityType = 'CCARBONE';
+            $solidarityType = $paiement['solidarityType'];
         } else {
             $carbon = 0;
             $price = 0;
-            $solidarityType = 'ROUNDING';
         }
         $ccarbone != null ? $price = $ccarbone->estimatedPrice : $price = 0;
         $this->context->smarty->assign(array(

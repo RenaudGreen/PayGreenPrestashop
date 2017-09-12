@@ -40,7 +40,6 @@ if (preg_match("#^[0-9a-z]{32}$#", Tools::getValue('paiementToken'))) {
         echo $result->success;
     } else if (Tools::getValue('getRounding') == true) {
         $result = $PAC->getRoundingInfo($datas);
-        file_put_contents('res.json', $result);
         echo json_encode($result);
     } else if (Tools::getValue('cancelRounding') == true) {
         $result = $PAC->refundRounding($datas);
@@ -49,8 +48,8 @@ if (preg_match("#^[0-9a-z]{32}$#", Tools::getValue('paiementToken'))) {
         if (Tools::getValue('associationId') > 0 && Tools::getValue('amount') > 0) {
             $datas['content'] = array(
                 "associationId" => Tools::getValue('associationId'),
-                "type" => "rounding",
-                "amount" => Tools::getValue('amount') * 100
+                "type"          => "rounding",
+                "amount"        => Tools::getValue('amount') * 100
             );
             $result = $PAC->validateRounding($datas);
             echo json_encode($result);

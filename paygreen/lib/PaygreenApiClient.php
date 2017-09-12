@@ -233,7 +233,6 @@ class PaygreenApiClient
     */
     public function getRoundingInfo($datas)
     {
-        file_put_contents('getroundinginfo.json', json_encode($datas), FILE_APPEND);
         $transaction = $this->requestApi('get-rounding', $datas);
         if($this->isContainsError($transaction)){
             return $transaction->error;
@@ -243,7 +242,6 @@ class PaygreenApiClient
 
     public function validateRounding($datas)
     {
-        file_put_contents('validaterounding.json', json_encode($datas), FILE_APPEND);
         $validate = $this->requestApi('validate-rounding', $datas);
         if ($this->isContainsError($validate)){
             return $validate->error;
@@ -253,7 +251,6 @@ class PaygreenApiClient
 
     public function refundRounding($datas)
     {
-        file_put_contents('refundrounding.json', json_encode($datas), FILE_APPEND);
         $datas['content'] = array('paymentToken' => $datas['paymentToken']);
         $refund = $this->requestApi('refund-rounding', $datas);
         if ($this->isContainsError($refund)){
